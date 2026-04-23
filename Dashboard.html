@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUSRI MHC - Dashboard Portal</title>
+    <style>
+        :root { --pusri-blue: #004a99; --pusri-gold: #ffd700; --soft-bg: #f4f7fa; --danger: #c53030; --success: #2f855a; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--soft-bg); color: #333; }
+        
+        /* Header & Status Cloud (Bab IX) */
+        .header { background: var(--pusri-blue); color: white; padding: 25px; text-align: center; border-bottom: 4px solid var(--pusri-gold); position: relative; }
+        .header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        .cloud-status { position: absolute; top: 10px; right: 20px; font-size: 20px; }  
+        .online { color: #48bb78; } .offline { color: var(--pusri-gold); }
+        /* Pengaturan Jam Digital */
+/* Pengaturan Kontainer Status di Pojok Kanan */
+/* Kontainer Utama Status */
+.status-wrapper { 
+    position: absolute; 
+    top: 15px;      /* Jarak dari atas */
+    right: 20px;    /* Jarak dari kanan */
+    display: flex;
+    flex-direction: column; /* Menyusun elemen ke bawah */
+    align-items: flex-end;  /* Rata kanan semua isinya */
+    gap: 5px;       /* Jarak otomatis antar baris (Status, Awan, Jam) */
+    z-index: 100;
+}
+
+/* Tulisan CLOUD ONLINE / OFFLINE */
+/* Kontainer Utama - Mengatur posisi di pojok kanan atas */
+.status-wrapper { 
+    position: absolute; 
+    top: 10px; 
+    right: 20px; 
+    display: flex;
+    flex-direction: column; /* Menyusun elemen ke bawah (vertikal) */
+    align-items: flex-end;  /* Rata kanan */
+    gap: 4px;               /* Jarak antar elemen */
+    z-index: 100;
+}
+
+/* Tulisan Status (CLOUD ONLINE) */
+#syncStatusText {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Ikon Awan - Diberi margin agar tidak menempel */
+.cloud-status { 
+    font-size: 24px; 
+    margin: 2px 0;
+    line-height: 1;
+    display: block;
+}
+
+/* Jam Digital - Paling bawah */
+.digital-clock { 
+    font-size: 14px; 
+    font-family: 'Courier New', monospace; 
+    font-weight: bold; 
+    color: var(--pusri-gold);
+    margin: 0;
+}
+        /* Notifikasi (Bab I & II) */
+        .notif-container { padding: 20px 20px 0; }
+        .notif-bar { 
+            background: #fff5f5; color: var(--danger); padding: 12px; margin-bottom: 10px; 
+            border-radius: 10px; border: 1px solid #feb2b2; font-size: 12px; 
+            font-weight: bold; display: none; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        /* Grid Menu */
+        #homeSection { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .menu-card { 
+            background: white; padding: 20px; border-radius: 15px; text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-decoration: none; color: inherit; 
+            transition: 0.3s; border: 1px solid transparent; display: flex; flex-direction: column; align-items: center;
+        }
+        .menu-card:active { transform: scale(0.95); }
+        .menu-icon { font-size: 40px; margin-bottom: 10px; }
+        .menu-title { font-weight: bold; font-size: 15px; color: var(--pusri-blue); }
+        .menu-desc { font-size: 11px; color: #666; margin-top: 5px; line-height: 1.3; }
+        
+        .monitoring-card { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%); border: 1px solid #d0e3ff; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+
+    <div class="status-wrapper">
+    <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
+    
+    <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
+    
+    <div id="jamDigital" class="digital-clock" style="font-size: 14px; font-family: 'Courier New', monospace; font-weight: bold; color: #ffd700; margin-top: 15px;">00:00:00</div>
+</div>
+    <h1>PUSRI MHC SYSTEM</h1>
+    <p>Monitoring History Card & Maintenance Integrated System</p>
+</div>
+
+    <div class="notif-container">
+        <div id="notifOutstanding" class="notif-bar"></div>
+        <div id="lastOrderBar" class="notif-bar" style="background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8;"></div>
+    </div>
+
+    <div id="homeSection">
+        <a href="formorder.html" class="menu-card">
+            <span class="menu-icon">📝</span>
+            <span class="menu-title">Form Order</span>
+            <span class="menu-desc">Buat W.O Baru & Notifikasi WA</span>
+        </a>
+
+        <a href="history_peralatan.html" class="menu-card monitoring-card">
+            <span class="menu-icon">📊</span>
+            <span class="menu-title">Plant Monitoring</span>
+            <span class="menu-desc">History Aset & Analisa MTBF</span>
+        </a>
+
+        <a href="Departemen-mechanical.html" class="menu-card">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-title">Mekanikal</span>
+            <span class="menu-desc">History Card & Data Mekanikal</span>
+        </a>
+
+        <a href="dept-electrical.html" class="menu-card">
+            <span class="menu-icon">⚡</span>
+            <span class="menu-title">Listrik</span>
+            <span class="menu-desc">Maintenance & Distribution</span>
+        </a>
+
+        <a href="dept-inspection.html" class="menu-card">
+            <span class="menu-icon">🔍</span>
+            <span class="menu-title">Inspeksi</span>
+            <span class="menu-desc">NDT & Reliability</span>
+        </a>
+
+        <a href="dept-supporting.html" class="menu-card">
+            <span class="menu-icon">🏗️</span>
+            <span class="menu-title">Supporting</span>
+            <span class="menu-desc">Scaffolding & Crane</span>
+        </a>
+
+         <a href="Spare-repair.html" class="menu-card">
+    <span class="menu-icon">🔧</span>
+    <span class="menu-title">Repair</span>
+    <span class="menu-desc">ex-spare</span>
+</a>
+    </div>
+
+<script>
+    const KEY_DB = 'Dashboard'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIqk-x_4Kb89uhzPvhbEnMbwjYGAzEVw_p5zj8VrouHuZ4LpFm5d-Qv-5MDcTOepbklA/exec';
+
+    async function checkAndRefresh() {
+        const icon = document.getElementById('icon');
+        const syncText = document.getElementById('syncStatusText');
+        
+        if (!navigator.onLine) {
+            updateStatusUI("LOCAL MODE", "#ffd700");
+            return;
+        }
+
+        try {
+            // Tambahkan timestamp (?t=) agar browser tidak mengambil data lama (cache)
+            const response = await fetch(SCRIPT_URL + "?read=true&t=" + new Date().getTime());
+            if (response.ok) {
+                const dataCloud = await response.json();
+                localStorage.setItem(KEY_DB, JSON.stringify(dataCloud));
+                loadDashboardData(); // Update tampilan
+                updateStatusUI("CLOUD ONLINE", "#48bb78");
+            }
+        } catch (error) {
+            console.error("Koneksi gagal:", error);
+            updateStatusUI("SERVER BUSY", "#ffd700");
+        }
+    }
+
+    function updateStatusUI(text, color) {
+        const syncText = document.getElementById('syncStatusText');
+        const icon = document.getElementById('icon');
+        if(syncText) {
+            syncText.innerText = text;
+            syncText.style.color = color;
+        }
+        if(icon) {
+            icon.style.filter = `drop-shadow(0 0 5px ${color}) sepia(100%) hue-rotate(${color === "#48bb78" ? '90deg' : '10deg'}) saturate(500%)`;
+        }
+    }
+
+    function loadDashboardData() {
+        const db = JSON.parse(localStorage.getItem(KEY_DB)) || [];
+        const outstandingItems = db.filter(item => 
+            item.status === "Outstanding" || item.progres === 0 || item.progres === "0%"
+        );
+        
+        const alertBar = document.getElementById('notifOutstanding');
+        if(alertBar) {
+            if(outstandingItems.length > 0) {
+                alertBar.style.display = 'block';
+                alertBar.innerText = `⚠️ ${outstandingItems.length} PEKERJAAN (OUTSTANDING) BELUM SELESAI`;
+            } else {
+                alertBar.style.display = 'none';
+            }
+        }
+    }
+
+    function updateClock() {
+        const jamElement = document.getElementById('jamDigital');
+        if (jamElement) jamElement.innerText = new Date().toLocaleTimeString('id-ID');
+    }
+
+    window.onload = () => {
+        updateClock();
+        checkAndRefresh();
+        setInterval(updateClock, 1000);
+        setInterval(checkAndRefresh, 30000); // Cek cloud tiap 30 detik
+    };
+</script>
+</body>
+</html>
