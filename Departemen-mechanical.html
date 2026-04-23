@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mekanikal - PUSRI Integrated System</title>
+    <style>
+        :root { 
+            --pusri-blue: #004a99; 
+            --pusri-gold: #ffd700; 
+            --soft-bg: #f4f7fa; 
+            --danger: #dc2626; 
+            --success: #16a34a; 
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background: var(--soft-bg); 
+            color: #333; 
+        }
+        
+        .header { 
+            background: var(--pusri-blue); 
+            color: white; 
+            padding: 25px; 
+            text-align: center; 
+            border-bottom: 4px solid var(--pusri-gold); 
+        }
+
+        .container { padding: 20px; max-width: 800px; margin: auto; }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: var(--pusri-blue);
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-back:hover { color: #003366; }
+
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--danger);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: 0.3s border-color;
+        }
+
+        .area-breakdown {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .area-badge {
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .nav-box { display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+        .btn-menu {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            border: 1px solid #e2e8f0;
+            font-weight: bold;
+        }
+
+        .btn-menu:hover { 
+            transform: translateY(-3px); 
+            border-color: var(--pusri-blue); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .icon-circle {
+            width: 50px; height: 50px;
+            background: #f0f7ff;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>DEPARTEMEN MEKANIKAL</h1>
+        <p>PUSRI MAINTENANCE INTEGRATED SYSTEM</p>
+    </div>
+
+    <div class="container">
+        <a href="Dashboard.html" class="btn-back">← Kembali ke Dashboard Utama</a>
+
+        <div class="status-card" id="notifMekanikal">
+            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Total Order Outstanding Mekanikal</div>
+            <div id="countOutstanding" style="font-size: 22px; font-weight: 800; color: var(--danger); margin: 5px 0;">MEMUAT DATA...</div>
+            <div class="area-breakdown" id="areaBreakdown"></div>
+        </div>
+
+        <div class="nav-box">
+            <a href="Input_progress_kerja.html" class="btn-menu">
+                <div class="icon-circle">🛠️</div>
+                <div>
+                    <div>INPUT PEKERJAAN</div>
+                    <div style="font-size: 11px; font-weight: normal; color: #64748b;">Update progres fisik, manpower, & skor kesehatan</div>
+                </div>
+            </a>
+
+            <a href="Logc.html" class="btn-menu">
+                <div class="icon-circle">👷</div>
+                <div>
+                    <div>MANAJEMEN PERSONIL & CV TEKNIS</div>
+                    <div style="font-size: 11px; font-weight: normal; color: #64748b;">Status Working/Standby & histori jam kerja efektif</div>
+                </div>
+            </a>
+
+            <a href="laporan_harian.html" class="btn-menu">
+                <div class="icon-circle">📅</div>
+                <div>
+                    <div>LAPORAN HARIAN</div>
+                    <div style="font-size: 11px; font-weight: normal; color: #64748b;">Rekap shift terpadu & ekspor data (Excel/PDF)</div>
+                </div>
+            </a>
+
+            <a href="Plant_Monitoring.html" class="btn-menu">
+                <div class="icon-circle">📋</div>
+                <div>
+                    <div>PLANT MONITORING</div>
+                    <div style="font-size: 11px; font-weight: normal; color: #64748b;">Life-record, Split-view evidence, & Bad Actor alert</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+   <script>
+    function updateMekanikalDashboard() {
+        const DB_NAME = 'Dashboard';
+        const data = JSON.parse(localStorage.getItem(DB_NAME)) || [];
+        
+        // Perbaikan Filter: Memastikan ejaan "mechanical" dari form terbaca di sini
+        const mechOrders = data.filter(item => {
+            const dept = (item.departemen || "").toLowerCase();
+            return item.status === "Outstanding" && (dept === "mechanical" || dept === "mekanikal");
+        });
+
+        const display = document.getElementById('countOutstanding');
+        const breakdownDiv = document.getElementById('areaBreakdown');
+        const statusCard = document.getElementById('notifMekanikal');
+        
+        if(mechOrders.length > 0) {
+            display.innerText = `${mechOrders.length} ORDER PERLU TINDAKAN`;
+            display.style.color = "var(--danger)";
+            statusCard.style.borderColor = "var(--danger)";
+            
+            const woList = mechOrders.map(order => 
+                `<span style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:bold; margin-right:5px; border:1px solid #fecaca; font-size:11px; display:inline-block; margin-top:4px;">
+                    #${order.wo}
+                </span>`
+            ).join('');
+
+            const summary = {};
+            mechOrders.forEach(order => {
+                const loc = `${order.plant} - ${order.area || 'N/A'}`;
+                summary[loc] = (summary[loc] || 0) + 1;
+            });
+
+            breakdownDiv.innerHTML = `
+                <div style="grid-column: 1 / -1; margin-bottom: 10px; padding: 10px; background: #fffaf0; border-radius: 8px; border: 1px dashed #ffd700;">
+                    <div style="font-size: 10px; color: #856404; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;">Daftar W.O Aktif:</div>
+                    ${woList}
+                </div>
+                ${Object.entries(summary).map(([loc, count]) => `
+                    <div class="area-badge">
+                        <b>${loc}</b><br>
+                        <span style="color:var(--danger)">${count} Pekerjaan</span>
+                    </div>`).join('')}
+            `;
+        } else {
+            display.innerText = "TIDAK ADA ANTRIAN PEKERJAAN";
+            display.style.color = "var(--success)";
+            if(statusCard) statusCard.style.borderColor = "var(--success)";
+            if(breakdownDiv) breakdownDiv.innerHTML = "";
+        }
+    }
+
+    // Jalankan sistem
+    updateMekanikalDashboard();
+    window.onload = updateMekanikalDashboard;
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'Dashboard') updateMekanikalDashboard();
+    });
+
+    setInterval(updateMekanikalDashboard, 2000);
+</script>

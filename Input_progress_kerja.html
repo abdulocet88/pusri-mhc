@@ -403,7 +403,8 @@
             <div id="mpSaran" style="display:none; position: absolute; z-index: 100; width: 100%; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto;"></div>
         </div>
         <div id="mpSelected" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
-      <input type="hidden" id="manpower"> <label><b>8. MANPOWER (TEAM) HISTORY:</b></label>
+      <input type="hidden" id="manpower"> <label>
+        <b>MANPOWER (TEAM) HISTORY:</b></label>
       <textarea id="manpower_history" class="form-control" rows="3" readonly></textarea>
         <button class="btn-action btn-terima" onclick="terimaOrder()">▶️ TERIMA ORDER</button>
       <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
@@ -506,55 +507,6 @@
   </div>
 </div>
 
-<div id="modalMemo" class="modal-makalah" style="display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: #fff; margin: 2% auto; padding: 40px; border: 1px solid #888; width: 70%; min-height: 80vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif;">
-        
-        <div style="text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 30px;">
-            <h2 style="margin: 0; text-transform: uppercase;">Memo to File: Laporan Progres Kerja</h2>
-            <p style="margin: 5px 0;">PT.Pupuk Sriwidjaja</p>
-        </div>
-
-        <table style="width: 100%; margin-bottom: 30px; font-size: 16px;">
-            <tr>
-                <td width="20%">NOMOR NOTIF</td><td width="2%">:</td><td id="m_notif" style="font-weight: bold;">-</td>
-                <td width="20%">PLANT / AREA</td><td width="2%">:</td><td id="m_plant_area">-</td>
-            </tr>
-            <tr>
-                <td>NAMA ALAT</td><td>:</td><td id="m_alat" style="font-style: italic;">-</td>
-                <td>STATUS AKHIR</td><td>:</td><td id="m_status">-</td>
-            </tr>
-        </table>
-
-        <div style="border-top: 1px solid #eee; padding-top: 20px;">
-            <h4 style="text-decoration: underline;">I. ANALISA KERJA KRONOLOGIS</h4>
-            <div id="m_analisa" style="margin-bottom: 25px; line-height: 1.5; white-space: pre-wrap; text-align: justify;"></div>
-
-            <h4 style="text-decoration: underline;">II. TINDAKAN PERBAIKAN / PROGRESS</h4>
-            <div id="m_tindakan" style="margin-bottom: 25px; line-height: 1.5; white-space: pre-wrap; text-align: justify;"></div>
-        </div>
-
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div style="text-align: center;">
-                <p>Penerima Order / PIC</p>
-                <br><br><br>
-                <p>( <span id="m_pic">........</span> )</p>
-            </div>
-            <div style="text-align: center;">
-                <p>Divalidasi Oleh (Admin)</p>
-                <br><br><br>
-                <p>( ........................... )</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 40px; text-align: right;">
-            <button onclick="tutupModal()" style="padding: 10px 20px; cursor: pointer;">Tutup Dokumen</button>
-            <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer; background: #28a745; color: white;">Cetak ke PDF</button>
-        </div>
-    </div>
-</div>
-<button type="button" onclick="bukaModalMemo()" class="btn-blue">
-   🔍 LIHAT MEMO TO FILE
-</button>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -713,29 +665,58 @@ function kompresGambar(file) {
     });
 }
 // FUNGSI PREVIEW FOTO (Menampilkan gambar kecil sebelum disimpan)
+let tabunganFotoBase64 = [];
 async function previewFotos() {
     const files = document.getElementById('fotoInp').files;
     const container = document.getElementById('fotoPrev');
     
-    // Tampilkan tulisan loading jika foto banyak
-    container.innerHTML = "<small>⌛ Memproses foto...</small>"; 
-    fotoBase64Array = []; 
+    if (files.length === 0) return;
 
-    for (let file of files) {
-        // Proses kompresi satu per satu
-        const compressedBase64 = await kompresGambar(file);
-        fotoBase64Array.push(compressedBase64);
+    // Tampilkan status loading
+    const loadingMsg = document.createElement('small');
+    loadingMsg.style.color = "#004a99";
+    loadingMsg.innerText = " ⌛ Menambah foto...";
+    container.appendChild(loadingMsg);
+
+    try {
+        for (let file of files) {
+            const compressedBase64 = await kompresGambar(file);
+            // KUNCINYA: Kita push (tambah) ke tabungan, bukan ganti isi
+            tabunganFotoBase64.push(compressedBase64);
+        }
+
+        // Render ulang tampilan dari tabungan
+        renderPreviewDariTabungan();
+        
+        // Reset input file agar bisa pilih foto yang sama lagi kalau mau
+        document.getElementById('fotoInp').value = "";
+
+    } catch (error) {
+        console.error("Gagal proses foto:", error);
     }
+}
 
-    // Setelah semua selesai dikompres, baru tampilkan gambarnya
+function renderPreviewDariTabungan() {
+    const container = document.getElementById('fotoPrev');
     container.innerHTML = ""; 
-    fotoBase64Array.forEach((imgBase64) => {
+
+    tabunganFotoBase64.forEach((imgBase64, index) => {
         const div = document.createElement('div');
-        div.className = "thumb-box";
-        div.style = "display:inline-block; margin-right:5px; border:1px solid #ccc; padding:2px; border-radius:5px;";
-        div.innerHTML = `<img src="${imgBase64}" style="width:75px; height:75px; object-fit:cover; border-radius:5px; display:block;">`;
+        div.style = "display:inline-block; margin:0 8px 8px 0; border:2px solid #004a99; padding:2px; border-radius:8px; background:white; position:relative;";
+        
+        div.innerHTML = `
+            <img src="${imgBase64}" style="width:80px; height:80px; object-fit:cover; border-radius:6px; display:block;">
+            <button onclick="hapusSatuFoto(${index})" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:12px; font-weight:bold;">×</button>
+            <span style="position:absolute; bottom:2px; left:2px; background:rgba(0,74,153,0.8); color:white; font-size:8px; padding:1px 4px; border-radius:4px;">${index + 1}</span>
+        `;
         container.appendChild(div);
     });
+}
+
+// Fungsi tambahan agar mekanik bisa hapus kalau salah foto
+function hapusSatuFoto(index) {
+    tabunganFotoBase64.splice(index, 1);
+    renderPreviewDariTabungan();
 }
 
 // FUNGSI TOGGLE AREA (Logika jika pilih Plant tertentu)
@@ -862,11 +843,12 @@ async function renderTable() {
         if(syncText) syncText.innerText = "SYNCING...";
         
         // AMBIL DATA DARI TABEL 'pekerjaan' (Daftar Order Utama)
-        const { data, error } = await _supabase
-            .from('pekerjaan')
-            .select('*')
-            .order('nomor_notif', { ascending: false });
-
+       const { data, error } = await _supabase
+        .from('pekerjaan')
+        .select('*')
+        // Urutkan nomor_notif dulu, baru ID paling besar (terbaru) di atas
+        .order('nomor_notif', { ascending: false })
+        .order('id', { ascending: false });
         if (error) throw error;
 
         // Simpan ke variabel global
@@ -902,6 +884,15 @@ async function terimaOrder() {
 
     // 1. VALIDASI
     if (!notif) return alert("Pilih nomor notif terlebih dahulu!");
+    
+    // --- TAMBAHAN PENTING: Ambil data referensi dari memori (cloudData) ---
+    // Kita cari data yang ID-nya paling besar atau statusnya belum Finish
+    const dataAktif = cloudData.find(r => String(r.nomor_notif) === String(notif) && r.status !== "Finish");
+    
+    if (!dataAktif) {
+        return alert("⚠️ Gagal: Tidak ditemukan baris aktif untuk notif ini atau pekerjaan sudah Finish.");
+    }
+
     if (!pic || pic.trim() === "") {
         alert("⚠️ Nama Penerima/PIC harus diisi!");
         document.getElementById('penerima').focus();
@@ -918,23 +909,23 @@ async function terimaOrder() {
     btn.innerText = "⏳ Memproses...";
 
     try {
-        // 2. EKSEKUSI UPDATE (Hanya ke satu tabel: pekerjaan)
-        const { data, error } = await _supabase
+        // 2. EKSEKUSI UPDATE (Hanya ke ID spesifik, bukan ke semua Notif)
+        const { error } = await _supabase
             .from('pekerjaan') 
             .update({ 
-                penerima: pic,      // Sesuaikan nama kolom di Table Editor
-                manpower: mp,        // Sesuaikan nama kolom di Table Editor
+                penerima: pic,
+                manpower: mp,
                 status: "Inprogres", 
                 progres: parseInt(prog) || 0 
             })
-            .eq('nomor_notif', notif); // Mencari baris berdasarkan nomor notifikasi
+            .eq('id', dataAktif.id); // <--- KUNCINYA DI SINI: Pakai ID, bukan nomor_notif
 
         if (error) throw error;
 
-        alert("✅ Berhasil! Data pekerjaan telah diupdate.");
+        alert("✅ Berhasil! Order diterima untuk baris aktif ini.");
         
-        // Update tampilan lokal jika ada fungsi render
-        if (typeof renderTable === "function") renderTable(); 
+        await fetchDataDariSupabase(); // Refresh data
+        if (typeof renderHist === "function") renderHist(); 
 
     } catch (err) {
         console.error("Error detail:", err);
@@ -957,18 +948,19 @@ async function simpanDraft(event) {
     const dataLama = cloudData.find(r => String(r.nomor_notif) === String(notif));
     if (!dataLama) return alert("Data tidak ditemukan di memori!");
 
-    // 2. Fungsi Pembantu: Menggabungkan Riwayat Lama di DB dengan Ketikan Baru di Form
     const gabungTeks = (idElemen, teksLamaDatabase) => {
-        const inputBaru = document.getElementById(idElemen)?.value.trim() || "";
-        const riwayatLama = (teksLamaDatabase || "").toString().trim();
+    const inputBaru = document.getElementById(idElemen)?.value.trim() || "";
+    const riwayatLama = (teksLamaDatabase || "").toString().trim();
 
-        // Jika mekanik mengetik sesuatu yang baru
-        if (inputBaru !== "" && inputBaru !== "-") {
-            const separator = (riwayatLama === "" || riwayatLama === "-") ? "" : riwayatLama + "\n\n";
-            return `${separator}--- UPDATE ${tgl} ${jam} ---\n${inputBaru}`;
-        }
-        // Jika kotak input kosong, kirimkan data lama apa adanya (agar tidak hilang)
-        return riwayatLama || "-";
+    // Jika mekanik mengetik sesuatu yang baru (bukan kosong atau cuma "-")
+    if (inputBaru !== "" && inputBaru !== "-") {
+        // Langsung kembalikan apa yang diketik user saja.
+        // Tidak perlu lagi label --- UPDATE ${tgl} ${jam} ---
+        return inputBaru; 
+    }
+    
+    // Jika kotak input kosong, kembalikan data lama agar draft tidak hilang
+    return riwayatLama || "-";
     };
 
     // 3. Proses Penggabungan untuk semua kolom laporan
@@ -989,13 +981,16 @@ async function simpanDraft(event) {
         // Jika kotak kendala kosong, status balik ke Inprogres
         statusFinal = "Inprogres";
     }
-
-    // 5. Eksekusi Update ke Supabase
+// 5. Eksekusi Update ke Supabase
     const btn = event.currentTarget;
     btn.disabled = true;
     btn.innerText = "⏳ Menyimpan...";
 
+    // Foto hanya untuk baris ini saja (Bukti per langkah)
+    const fotoFinal = tabunganFotoBase64.join(" , "); 
+
     try {
+        // --- STEP 1: Update Baris Utama (Laporan & Foto Spesifik) ---
         const { error } = await _supabase
             .from('pekerjaan')
             .update({
@@ -1004,30 +999,128 @@ async function simpanDraft(event) {
                 resume: resumeFinal,
                 kendala: kendalaFinal,
                 progres: parseInt(prog) || 0,
-                status: statusFinal
+                status: statusFinal,
+                foto_pekerjaan: tabunganFotoBase64.join(" , ")
             })
-            .eq('nomor_notif', notif);
+            .eq('nomor_notif', notif); // Logika ini harus dipastikan hanya kena baris yang diedit (bisa pakai ID kalau mau lebih spesifik)
 
         if (error) throw error;
 
-        // 6. REFRESH DATA & TAMPILAN
-        // Ambil data terbaru dari internet agar memori (cloudData) terupdate
-        await fetchDataDariSupabase(); 
+        // --- STEP 2: SINKRONISASI MASSAL (HANYA PROGRES & STATUS) ---
+        // Agar semua log alat ini punya status kesehatan yang sama di dashboard
+        const { error: syncError } = await _supabase
+            .from('pekerjaan')
+            .update({ 
+                status: statusFinal, 
+                progres: parseInt(prog) || 0 
+                // foto_pekerjaan TIDAK dimasukkan di sini agar history foto tidak hilang
+            })
+            .eq('nomor_notif', notif);
         
-        // Update list/daftar di bagian atas
-        if (typeof filterOutstanding === "function") filterOutstanding();
+        if (syncError) console.warn("Gagal sinkron progres massal.");
 
-        alert(`✅ BERHASIL SIMPAN!\nStatus: ${statusFinal}`);
+        // --- STEP 3: Bersihkan Tabungan & Refresh ---
+        await fetchDataDariSupabase(); // 1. Ambil semua data terbaru dari Supabase
+        renderHist();                  // 2. Update tabel riwayat (biar kelihatan perubahannya)
+        filterOutstanding();           // 3. Update tabel antrean (biar baris yang sudah 'Finish' hilang)
+        tabunganFotoBase64 = []; 
+        if(document.getElementById('fotoPrev')) document.getElementById('fotoPrev').innerHTML = "";
 
-        // Panggil kembali pilihNotif agar form bersih dan Banner Status berubah warna
+        alert(`✅ BERHASIL!\nLaporan tersimpan. Progres alat disinkronkan.`);
         pilihNotif(notif); 
 
     } catch (err) {
         console.error("Gagal simpan:", err);
-        alert("Gagal simpan: " + err.message);
+        alert("Gagal simpan: " + err.message);5
     } finally {
         btn.disabled = false;
         btn.innerText = "📝 SIMPAN DRAFT";
+    }
+}
+
+async function simpanFinal(event) {
+    const elNotif = document.getElementById('nomor_notif');
+    if (!elNotif || !elNotif.value) return alert("Pilih nomor notif dulu!");
+
+    const yakin = confirm("Simpan laporan ini ke riwayat (History) dan buat sesi baru untuk kelanjutan?");
+    if (!yakin) return;
+
+    const notif = elNotif.value;
+    const btn = event.currentTarget;
+    
+    // 1. Ambil data referensi dari baris yang sedang aktif di form
+    const dataRef = cloudData.find(r => String(r.nomor_notif) === String(notif));
+    
+    // 2. Ambil semua input yang baru saja Bapak ketik
+    const inputAnalisa = document.getElementById('analisa')?.value.trim() || "";
+    const inputTindakan = document.getElementById('tindakan_pekerjaan')?.value.trim() || "";
+    const inputResume = document.getElementById('resume')?.value.trim() || "";
+    const inputKendala = document.getElementById('kendala')?.value.trim() || "";
+    const prog = parseInt(document.getElementById('progRange')?.value) || 0;
+    const pic = document.getElementById('penerima')?.value || "";
+    const tim = document.getElementById('manpower')?.value || "";
+
+    btn.disabled = true;
+    btn.innerText = "⏳ Memproses...";
+
+    try {
+        // --- STEP A: SIMPAN DATA LENGKAP KE BARIS LAMA (Akan Jadi History) ---
+        // Ini supaya saat klik 'Lihat Log', datanya muncul lengkap
+        const { error: errorUpdate } = await _supabase
+            .from('pekerjaan')
+            .update({
+                analisa: inputAnalisa,
+                tindakan_pekerjaan: inputTindakan,
+                resume: inputResume,
+                kendala: inputKendala,
+                progres: prog,
+                penerima: pic, // Pastikan PIC tersimpan di history
+                manpower: tim, // Pastikan Team tersimpan di history
+                status: prog === 100 ? "Finish" : "Inprogres",
+                foto_pekerjaan: tabunganFotoBase64.join(" , ")
+            })
+            .eq('id', dataRef.id);
+
+        if (errorUpdate) throw errorUpdate;
+
+        // --- STEP B: BUAT BARIS BARU UNTUK DRAFT SELANJUTNYA (Jika < 100%) ---
+        if (prog < 100) {
+            const { error: errorInsert } = await _supabase
+                .from('pekerjaan')
+                .insert([{
+                    nomor_notif: notif,
+                    plant: dataRef.plant,
+                    area: dataRef.area,
+                    nomor_item: dataRef.nomor_item,
+                    deskripsi: dataRef.deskripsi, // Deskripsi tetap dibawa
+                    penerima: pic, // PIC dibawa ke sesi baru
+                    manpower: tim, // Team dibawa ke sesi baru
+                    progres: prog, // Progres mulai dari angka terakhir
+                    status: "Inprogres",
+                    // Analisa & Tindakan dikosongkan agar siap diisi baru
+                    analisa: null, 
+                    tindakan_pekerjaan: null 
+                }]);
+            
+            if (errorInsert) throw errorInsert;
+        }
+
+        // --- STEP C: REFRESH DATA ---
+        await fetchDataDariSupabase();
+        renderHist();
+        
+        // Bersihkan Form secara manual (Safe Reset)
+        const ids = ['nomor_notif', 'penerima', 'analisa', 'tindakan_pekerjaan', 'resume', 'kendala'];
+        ids.forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ""; });
+        tabunganFotoBase64 = [];
+
+        alert("✅ Berhasil! Sesi lama tersimpan di Log, sesi baru telah dibuat.");
+
+    } catch (err) {
+        alert("Gagal: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "✅ SIMPAN CLOUD (FINAL)";
     }
 }
 
@@ -1045,6 +1138,7 @@ function filterOutstanding() {
         return;
     }
 
+    // --- LANGKAH 1: FILTER DASAR (Plant, Area, Status) ---
     let filtered = cloudData.filter(row => {
         const rowPlant = String(row.plant || "");
         const rowArea = String(row.area || "");
@@ -1064,36 +1158,45 @@ function filterOutstanding() {
         return matchPlant && matchArea && matchStatus;
     });
 
-    if (filtered.length === 0) {
+    // --- LANGKAH 2: LOGIKA UNIQUE (Hanya ambil 1 data terbaru per Nomor Notif) ---
+    // Kita gunakan object untuk menimpa data lama dengan yang ID-nya lebih besar
+    const uniqueMap = {};
+    filtered.forEach(row => {
+        const key = row.nomor_notif;
+        if (!uniqueMap[key] || row.id > uniqueMap[key].id) {
+            uniqueMap[key] = row;
+        }
+    });
+    
+    // Ubah kembali menjadi array agar bisa di-map
+    const finalData = Object.values(uniqueMap);
+
+    if (finalData.length === 0) {
         listDiv.innerHTML = '<p style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Tidak ada antrean pekerjaan.</p>';
         return;
     }
 
-    listDiv.innerHTML = filtered.map(row => {
+    // --- LANGKAH 3: RENDER DATA FINAL ---
+    listDiv.innerHTML = finalData.map(row => {
         const nNotif = row.nomor_notif || "Tanpa Notif";
         const progres = row.progres || 0;
         const statusDB = row.status || "Outstanding";
         const kendala = row.kendala || "";
 
-        // --- INI PERUBAHANNYA: LOGIKA STABIL MAS ABDUL ---
+        // ... (Logika Label & Warna Bapak tetap sama) ...
         let sLabel = statusDB;
-        let color = '#004a99'; // Default Pusri Blue
+        let color = '#004a99'; 
 
         if (statusDB.toLowerCase() === 'finish' || statusDB.toLowerCase() === 'closed') {
-            sLabel = "Closed"; 
-            color = '#16a34a'; // Hijau Sukses
+            sLabel = "Closed"; color = '#16a34a'; 
         } else if (statusDB.toLowerCase() === "waiting approval" || progres >= 100) {
-            sLabel = "Verifikasi"; 
-            color = '#16a34a'; // Hijau Sukses
+            sLabel = "Verifikasi"; color = '#16a34a'; 
         } else if (kendala && kendala !== "-" && kendala.trim() !== "") {
-            sLabel = "Pending"; 
-            color = '#ef4444'; // Merah Kendala
+            sLabel = "Pending"; color = '#ef4444'; 
         } else if (progres > 0) {
-            sLabel = "In Progres"; 
-            color = '#004a99'; // Biru Inprogres
+            sLabel = "In Progres"; color = '#004a99'; 
         } else {
-            sLabel = "Outstanding"; 
-            color = '#ea580c'; // Oranye Awal
+            sLabel = "Outstanding"; color = '#ea580c'; 
         }
 
         return `
@@ -1140,35 +1243,190 @@ function renderHist() {
         return;
     }
 
-    // Masukkan data ke dalam tabel
-    histBody.innerHTML = filtered.map(row => `
-        <tr>
-            <td>${row.timestamp || row.waktu || '-'}</td>
-            <td><b>${row.nomor_notif || '-'}</b></td>
-            <td>
-                <small>${row.plant || '-'} / ${row.area || '-'}</small><br>
-                <b>${row.nomor_item || '-'}</b>
+   let notifTerarsip = []; 
+
+    // 3. Masukkan data ke dalam tabel
+    histBody.innerHTML = filtered.map(row => {
+        const formatWaktu = (val) => {
+            if(!val) return "-";
+            const d = new Date(val);
+            return d.toLocaleDateString('id-ID',) + ' ' + 
+                   d.toLocaleTimeString('id-ID',);
+        };
+        const nNotif = row.nomor_notif || "-";
+        
+        // Cek apakah ini baris terbaru untuk notif ini
+        let isTerbaru = false;
+        if (!notifTerarsip.includes(nNotif)) {
+            isTerbaru = true;
+            notifTerarsip.push(nNotif);
+        }
+
+        // Pengaturan gaya visual (Terbaru vs History)
+        // Terbaru: Putih bersih | History: Abu-abu pudar (soft)
+        const rowStyle = isTerbaru 
+            ? "background-color: #ffffff; font-weight: 500;" 
+            : "background-color: #f8fafc; color: #94a3b8; opacity: 0.8;";
+        
+        const badgeLabel = isTerbaru 
+            ? `<div style="font-size:8px; color:#004a99; font-weight:bold; margin-bottom:2px;">[ TERBARU ]</div>`
+            : `<div style="font-size:8px; color:#94a3b8; margin-bottom:2px;">[ HISTORY ]</div>`;
+
+        return `
+            <tr style="${rowStyle}">
+                <td style="font-size: 11px;">
+                    ${formatWaktu(row.created_at || row.timestamp || row.waktu)}
+                </td>
+                   <td style="padding: 8px; min-width: 100px; vertical-align: top;">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        ${badgeLabel}
+                        <b style="color:${isTerbaru ? '#004a99' : 'inherit'}; font-size: 12px; word-break: break-all; display: block;">
+                            ${nNotif}
+                        </b>
+                    </div>
+                </td>
+                <td>
+                    <small>${row.plant || '-'} / ${row.area || '-'}</small><br>
+                    <b>${row.nomor_item || '-'}</b>
+                </td>
+                <td>
+                    <div class="mp-chip" style="${!isTerbaru ? 'opacity:0.6;' : ''}">${row.penerima || '-'}</div><br>
+                    <small>Team: ${row.manpower || '-'}</small>
+                </td>
+                <td style="padding: 10px; min-width: 250px; max-width: 350px;">
+                    <div style="font-size: 10px; line-height: 1.4; color: #334155; 
+                                word-wrap: break-word; white-space: normal; margin-bottom: 8px;">
+                        ${row.tindakan_pekerjaan || row.tindakan || '-'}
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="flex: 1; background: #e2e8f0; border-radius: 10px; height: 6px; overflow: hidden;">
+                            <div style="width: ${row.progres || 0}%; background: #004a99; height: 100%; border-radius: 10px;"></div>
+                        </div>
+                        <span style="font-size: 10px; font-weight: bold; color: #004a99;">${row.progres || 0}%</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="mp-chip" style="background:${getStatusColor(row.status)}; color:white; border:none; ${!isTerbaru ? 'opacity:0.6;' : ''}">
+                        ${row.status || 'Outstanding'}
+                    </span>
+                </td>
+                <td class="no-print">
+                <button class="btn-blue" 
+                    style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block; ${!isTerbaru ? 'background:#94a3b8; border-color:#94a3b8;' : ''}" 
+                    onclick="${isTerbaru ? `pilihNotif('${row.nomor_notif}')` : `tampilkanLogReadOnly('${row.id}')`}">
+                    ${isTerbaru ? '📝 EDIT / DETAIL' : '👁️ LIHAT LOG'}
+                </button>
             </td>
-            <td>
-                <div class="mp-chip">${row.penerima || '-'}</div><br>
-                <small>Team: ${row.manpower || '-'}</small>
-            </td>
-            <td>
-                <small>${row.tindakan || '-'}</small>
-                <div class="mini-prog-bg">
-                    <div class="mini-prog-fill" style="width:${row.progres}%; background:${getStatusColor(row.status)}"></div>
-                </div>
-            </td>
-            <td><span class="mp-chip" style="background:${getStatusColor(row.status)}; color:white; border:none">${row.status || 'Outstanding'}</span></td>
-            <td class="no-print">
-                <button class="btn-blue" style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block;" onclick="pilihNotif('${row.nomor_notif}')">EDIT / DETAIL</button>
-        </tr>
-    `).join('');
+            </tr>
+        `;
+    }).join('');
 }
 
-// TAMBAHKAN FUNGSI INI DI BAWAH RENDERHIST AGAR TOMBOLNYA JALAN
+function tampilkanLogReadOnly(idBaris) {
+    const data = cloudData.find(r => String(r.id) === String(idBaris));
+    if (!data) return alert("Data log tidak ditemukan.");
 
-// Tambahkan juga fungsi reset agar tombol reset tidak error
+    // Menangani Foto
+    // --- BAGIAN PENANGANAN FOTO ANTI-BUG ---
+        let htmlFoto = "";
+        if (data.foto_pekerjaan) {
+            let listFoto = [];
+            
+            // 1. Cek apakah datanya sudah berbentuk Array atau masih String
+            if (Array.isArray(data.foto_pekerjaan)) {
+                listFoto = data.foto_pekerjaan;
+            } else {
+                // Jika String, kita pecah pakai koma (semua jenis koma)
+                listFoto = data.foto_pekerjaan.split(",");
+            }
+
+            // 2. Bersihkan setiap URL/Base64 dari spasi atau karakter enter
+            listFoto.forEach((img, idx) => {
+                const urlBersih = img.trim().replace(/[\n\r]/g, ""); // Hapus spasi & enter
+                
+                if(urlBersih.length > 10) { // Pastikan bukan string kosong
+                    htmlFoto += `
+                        <div style="margin-bottom:15px; background:white; padding:5px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                            <img src="${urlBersih}" 
+                                style="width:100%; border-radius:5px; display:block;"
+                                onclick="window.open(this.src)" 
+                                title="Klik untuk perbesar"
+                                onerror="this.src='https://placehold.co/400x300?text=Gambar+Rusak+atau+Terpotong';">
+                            <div style="text-align:center; font-size:10px; color:#64748b; margin-top:5px;">Foto Ke-${idx + 1}</div>
+                        </div>`;
+                }
+            });
+        }
+
+        // Jika setelah dicek tetap kosong
+        if (htmlFoto === "") {
+            htmlFoto = "<p style='color:#64748b; font-style:italic; font-size:12px; text-align:center; padding:20px;'>🚫 Tidak ada foto atau data foto tidak valid.</p>";
+        }
+
+    // Template tampilan log yang lengkap dengan Deskripsi di bawah Progres
+    const contentLog = `
+        <div style="text-align:left; font-family:Arial, sans-serif; line-height:1.6; color:#333;">
+            <h3 style="border-bottom:3px solid #004a99; padding-bottom:10px; color:#004a99; margin-top:0;">
+                <i class="fas fa-file-alt"></i> Detail Riwayat Selesai
+            </h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; background: #f8fafc; padding: 10px; border-radius: 8px;">
+                <div><b>Waktu:</b><br>${new Date(data.created_at).toLocaleString('id-ID')}</div>
+                <div><b>Nomor Notif:</b><br><span style="color:#e11d48; font-weight:bold;">${data.nomor_notif}</span></div>
+                <div><b>PIC:</b><br>${data.penerima || "-"}</div>
+                <div><b>Progres Akhir:</b><br><span style="padding:2px 8px; background:#004a99; color:white; border-radius:10px;">${data.progres}%</span></div>
+            </div>
+
+            <div style="margin-top:15px; padding:12px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px;">
+                <b style="color:#92400e; font-size:13px;"><i class="fas fa-info-circle"></i> DESKRIPSI PEKERJAAN:</b><br>
+                <span style="font-size:12px; color:#451a03;">${data.deskripsi || "Tidak ada deskripsi pekerjaan tersedia."}</span>
+            </div>
+
+            <div style="margin-top:15px; font-size:13px;">
+                <p><b><i class="fas fa-search"></i> Analisa Kerusakan:</b><br>${data.analisa || "-"}</p>
+                <p><b><i class="fas fa-tools"></i> Tindakan Pengerjaan:</b><br>${data.tindakan_pekerjaan || "-"}</p>
+                <p><b><i class="fas fa-exclamation-triangle"></i> Kendala Lapangan:</b><br>${data.kendala || "-"}</p>
+                
+                <div style="background:#f0fdf4; padding:12px; border-left:4px solid #16a34a; margin-top:15px;">
+                    <b style="color:#166534;"><i class="fas fa-check-double"></i> KESIMPULAN / RESUME:</b><br>
+                    <span style="color:#14532d;">${data.resume || "Belum ada kesimpulan akhir."}</span>
+                </div>
+            </div>
+
+            <h4 style="margin-top:20px; border-top:1px solid #eee; pt:15px;"><i class="fas fa-camera"></i> Dokumentasi Foto:</h4>
+            <div style="max-height:350px; overflow-y:auto; border:1px solid #e2e8f0; padding:10px; border-radius:8px; background:#f1f5f9;">
+                ${htmlFoto}
+            </div>
+        </div>
+    `;
+
+    // Eksekusi Tampilan (Gunakan Modal jika ada ID isiDetailLog)
+    const modalTarget = document.getElementById('isiDetailLog');
+    if (modalTarget) {
+        modalTarget.innerHTML = contentLog;
+        document.getElementById('modalBesar').style.display = 'block';
+    } else {
+        // Fallback jika modal belum siap
+        const win = window.open("", "Detail Log", "width=550,height=800");
+        win.document.write(`
+            <html>
+                <head>
+                    <title>Detail Log - ${data.nomor_notif}</title>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+                </head>
+                <body style="padding:20px; background:#f4f4f4;">
+                    <div style="background:white; padding:20px; border-radius:12px; shadow: 0 4px 6px rgba(0,0,0,0.1); max-width:500px; margin:auto;">
+                        ${contentLog}
+                        <br>
+                        <button onclick="window.close()" style="width:100%; padding:10px; background:#e11d48; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TUTUP JENDELA</button>
+                    </div>
+                </body>
+            </html>
+        `);
+    }
+}
+
 function resetFilters() {
     document.getElementById('fPlant').value = "";
     document.getElementById('fArea').value = "";
@@ -1202,7 +1460,23 @@ function pilihNotif(notif) {
         const el = document.getElementById(item.id);
         if (el) {
         const teksLama = (item.val || "").toString().trim();
-        
+        // --- TAMBAHAN KHUSUS UNTUK FOTO (Agar tidak kosong saat Edit) ---
+        tabunganFotoBase64 = []; // Reset tabungan
+        if (data.foto_pekerjaan) {
+            // Pecah teks foto dari database dan masukkan ke tabungan
+            const listFoto = data.foto_pekerjaan.split(" , ");
+            listFoto.forEach(img => {
+                if (img.trim() !== "") tabunganFotoBase64.push(img.trim());
+            });
+            // Jalankan fungsi render preview Bapak agar fotonya tampil di layar
+            renderPreviewDariTabungan(); 
+        } else {
+            // Jika tidak ada foto, bersihkan kotak preview
+            if(document.getElementById('fotoPrev')) document.getElementById('fotoPrev').innerHTML = "";
+        }
+        // ---------------------------------------------------------------
+    
+
         // 1. JIKA DATA KOSONG (Baru atau belum ada riwayat)
         if (teksLama === "" || teksLama === "-" || !teksLama) {
             el.value = ""; // Biarkan kosong agar bersih

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUSRI MHC - Form Order & Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --pusri-blue: #004a99;
+            --pusri-gold: #ffd700;
+            --safety: #ff8c00;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --light: #f4f7fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background: var(--pusri-blue);
+            padding: 10px 25px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-dash {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            border: 1px solid white;
+            transition: 0.3s;
+        }
+
+        .btn-dash:hover {
+            background: var(--pusri-gold);
+            color: var(--pusri-blue);
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            border-top: 5px solid var(--pusri-gold);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #syncStatusText {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .cloud-icon {
+            font-size: 20px;
+            margin: 2px 0;
+            display: inline-block;
+            color: white;
+            line-height: 1;
+            transition: 0.3s; /* Tambahkan ini agar transisi warna halus */
+        }
+
+        .form-clock {
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--pusri-gold);
+        }
+
+        :root { --pusri-blue: #004a99; --pusri-gold: #ffd700; --soft-bg: #f4f7fa; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--soft-bg); margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 1200px; margin: auto; }
+        
+        /* Filter Panel */
+        .filter-panel { 
+            background: #1e293b; color: white; padding: 20px; border-radius: 12px; 
+            margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .filter-group label { display: block; font-size: 11px; margin-bottom: 5px; font-weight: bold; color: var(--pusri-gold); }
+        select, input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; box-sizing: border-box; }
+        .btn-search { background: var(--pusri-gold); border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-search:hover { background: #e6c200; transform: translateY(-2px); }
+
+        /* Report Paper Style */
+        .card { background: white; padding: 40px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; min-height: 800px; }
+        .report-header { display: flex; align-items: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .report-title { flex-grow: 1; text-align: center; }
+        .report-title h2 { margin: 0; color: #000; font-size: 18px; text-transform: uppercase; }
+        .report-title p { margin: 5px 0; font-size: 12px; font-weight: bold; }
+
+        /* --- CSS TABEL TEROPTIMASI --- */
+/* Update CSS Tabel Bapak */
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: auto; /* Biarkan browser menghitung lebar otomatis */
+    font-size: 10px;
+    margin-top: 10px;
+}
+
+th, td { 
+    border: 1px solid #000; 
+    padding: 5px; 
+    vertical-align: top;
+    line-height: 1.2;
+}
+
+/* KUNCI: Kolom Identitas, Notif, dan Prog dibuat mepet (1%) */
+th:nth-child(1), td:nth-child(1), /* Identitas */
+th:nth-child(2), td:nth-child(2), /* Notif/WO */
+th:nth-child(6), td:nth-child(6)  /* Prog */ {
+    width: 1%;
+    white-space: nowrap; /* Teks tidak akan turun baris di sini */
+}
+
+/* KELUHAN & MANPOWER: Boleh turun baris tapi jangan terlalu lebar */
+th:nth-child(3), td:nth-child(3), 
+th:nth-child(5), td:nth-child(5) {
+    width: 15%; 
+    white-space: normal;
+}
+
+/* TINDAKAN: Mengambil sisa ruang paling besar */
+th:nth-child(4), td:nth-child(4) {
+    width: 100%;
+    white-space: normal;
+}
+
+@media print {
+    /* Sembunyikan Navbar, Tombol Filter, dan tombol Cetak */
+    .navbar, 
+    .no-print, 
+    .filter-panel, 
+    .btn-back,
+    .btn-dash { 
+        display: none !important; 
+    }
+
+    /* Hilangkan background abu-abu body agar hemat tinta */
+    body { 
+        background: white; 
+        padding: 0; 
+        margin: 0;
+    }
+
+    /* Pastikan kertas laporan menggunakan seluruh lebar halaman */
+    .card { 
+        box-shadow: none; 
+        border: none; 
+        padding: 0; 
+        margin: 0;
+        width: 100%;
+    }
+
+    .container {
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Hilangkan garis bawah pada input nama saat dicetak agar terlihat bersih */
+    .input-nama-badge { 
+        border-bottom: none !important; 
+    }
+}
+.input-nama-badge {
+    width: 200px; /* Batasi lebar agar tidak mentok ke pinggir */
+    border: none;
+    border-bottom: 1px solid #000; /* Hanya garis bawah */
+    text-align: center; /* Teks di tengah */
+    padding: 5px 0;
+    margin-top: 5px;
+    font-family: inherit;
+    outline: none;
+    background: transparent;
+}
+
+.sig-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Semua elemen tanda tangan jadi rata tengah */
+    text-align: center;
+}
+
+.canvas-wrap {
+    position: relative;
+    border: 1px dashed #ccc; /* Beri bingkai tipis agar tahu batas coretan */
+    margin: 10px 0;
+    background: #fff;
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+        <a href="index.html" class="btn-dash">🏠 KEMBALI KE DASHBOARD</a>
+        <div style="flex-grow: 1; text-align: center;">ROSYID MHC | MONITORING FORM ORDER</div>
+
+        <div class="form-status-wrapper">
+            <div id="syncStatusText">CHECKING...</div>
+            <div id="icon" class="cloud-icon">☁️</div>
+            <div id="formClock" class="form-clock">00:00:00</div>
+        </div>
+    </nav>
+
+
+<div class="container">
+    <a href="dept-mechanical.html" class="no-print" style="text-decoration:none; color:var(--pusri-blue); font-weight:bold; display:inline-block; margin-bottom:10px;">← Kembali ke Menu Mekanikal</a>
+
+    <div class="filter-panel no-print">
+        <div class="filter-group">
+            <label>Plant</label>
+            <select id="fPlant">
+                <option value="">Semua Plant (Shift Terpadu)</option>
+                <option>Pusri 1B</option><option>Pusri 2B</option><option>Pusri 3</option>
+                <option>Pusri 4</option><option>STG BB</option><option>PPU</option><option>NPK</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Area</label>
+            <select id="fArea">
+                <option value="">Semua Area</option>
+                <option>Amonia</option><option>Urea</option><option>Offsite</option><option>Utilitas</option>
+            </select>
+        </div>
+        <div class="filter-group">
+        <label>Mulai (Tanggal & Jam)</label>
+        <input type="datetime-local" id="filterStart" step="1">
+    </div>
+    <div class="filter-group">
+        <label>Selesai (Tanggal & Jam)</label>
+        <input type="datetime-local" id="filterEnd" step="1">
+    </div>
+    <div class="filter-group" style="display: flex; align-items: flex-end;">
+        <button class="btn-search" onclick="fetchDataWithTime()">Tampilkan Laporan</button>
+    </div>
+</div>
+
+    <div class="card">
+        <div class="report-header">
+            <div style="width: 80px;">
+                <img src="https://upload.wikimedia.org/wikipedia/id/thumb/d/d4/Logo_Pusri.svg/1200px-Logo_Pusri.svg.png" width="70" alt="Logo">
+            </div>
+            <div class="report-title">
+                <h4>DEPARTEMEN OPERASI & PEMELIHARAAN</h4>
+                <h5>SBU JASA PEMELIHARAAN PABRIK</h5>
+                <h2 id="judulLaporan">LAPORAN REGU SHIFT TERPADU</h2>
+                <p id="labelPeriode">Periode: -</p>
+            </div>
+            <div class="no-print">
+                <button onclick="window.print()" style="cursor:pointer; padding: 8px 15px; background:var(--pusri-blue); color:white; border:none; border-radius:5px;">Cetak PDF</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>IDENTITAS ALAT</th> <th>NOTIF / WO</th>
+                <th>KELUHAN (OPS)</th>
+                <th>TINDAKAN (MECH)</th>
+                <th>MANPOWER</th>
+                <th>PROG</th>
+            </tr>
+        </thead>
+            <tbody id="reportContent">
+                <tr><td colspan="6" class="text-center">Gunakan filter di atas dan klik tombol Tampilkan Laporan.</td></tr>
+            </tbody>
+        </table>
+
+<div class="sig-container" style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 50px;">
+    <div class="sig-box">
+        <p>Palembang, <span id="tglSekarang">-</span></p>
+        <p style="font-size: 11px; margin-bottom: 5px;">Supervisor / Foreman:</p>
+        
+        <div class="canvas-wrap">
+            <canvas id="signature-pad" width="280" height="130"></canvas>
+            <button onclick="clearSignature()" class="no-print" style="position: absolute; top: 0; right: 0; font-size: 10px; background: red; color: white; border: none; cursor: pointer; padding: 2px 5px;">Reset</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <input type="text" class="input-nama-badge" placeholder="( Nama Jelas )" style="font-weight: bold;">
+            <input type="text" class="input-nama-badge" placeholder="Badge / NIK" style="font-size: 11px; border-bottom: none;">
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+ // --- CONFIG SUPABASE ---
+const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
+
+// Inisialisasi Client (Gunakan nama variabel yang konsisten)
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// --- FUNGSI CEK KONEKSI ---
+async function checkSyncStatus() {
+    const icon = document.getElementById('icon');
+    const statusText = document.getElementById('syncStatusText');
+
+    try {
+        const { data, error } = await _supabase.from('pekerjaan').select('id').limit(1);
+        if (error) throw error;
+
+        // --- EFEK JIKA BERHASIL (ONLINE) ---
+        statusText.innerText = "SUPABASE ONLINE";
+        statusText.style.color = "#25d366"; 
+        
+        icon.style.color = "#25d366"; 
+        // Trik: drop-shadow memberikan warna di luar, sepia/hue-rotate mengubah warna emoji asli
+        icon.style.filter = "drop-shadow(0 0 5px #25d366) sepia(100%) hue-rotate(90deg) saturate(300%)"; 
+        icon.innerText = "☁️"; 
+        
+    } catch (err) {
+        // --- EFEK JIKA GAGAL (OFFLINE) ---
+        statusText.innerText = "OFFLINE / ERROR";
+        statusText.style.color = "#dc2626"; 
+        
+        icon.style.color = "#dc2626";
+        icon.style.filter = "drop-shadow(0 0 5px #dc2626) brightness(0.8) contrast(2)";
+        icon.innerText = "⚠️"; 
+    }
+}
+
+// --- JALANKAN OTOMATIS SAAT HALAMAN DIBUKA ---
+window.onload = function() {
+    // 1. Jalankan pengecekan koneksi pertama kali
+    checkSyncStatus();
+    
+    // 2. Jalankan jam digital
+    setInterval(updateFormClock, 1000);
+    
+    // 3. (Opsional) Cek ulang koneksi tiap 30 detik agar tetap terpantau
+    setInterval(checkSyncStatus, 30000);
+    
+    // 4. Set tanggal otomatis di bagian tanda tangan
+    const tgl = new Date().toLocaleDateString('id-ID', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+    });
+    const tglEl = document.getElementById('tglSekarang');
+    if(tglEl) tglEl.innerText = tgl;
+};
+
+// --- FUNGSI JAM DIGITAL (Pastikan ini ada) ---
+function updateFormClock() {
+    const clockEl = document.getElementById('formClock');
+    if (clockEl) {
+        const now = new Date();
+        clockEl.innerText = now.toLocaleTimeString('id-ID', { hour12: false });
+    }
+}
+
+// --- FUNGSI UTAMA TAMPILKAN LAPORAN (Satu Fungsi untuk Semua) ---
+async function fetchDataWithTime() {
+    // 1. AMBIL NILAI DARI INPUT FILTER
+    const plant = document.getElementById('fPlant').value;
+    const area = document.getElementById('fArea').value;
+    const startVal = document.getElementById('filterStart').value;
+    const endVal = document.getElementById('filterEnd').value;
+    
+    const judulHeader = document.getElementById('judulLaporan');
+    const labelPeriode = document.getElementById('labelPeriode');
+    const tbody = document.getElementById('reportContent');
+
+    if (!startVal || !endVal) {
+        alert("Pilih rentang tanggal dan jam terlebih dahulu, Pak!");
+        return;
+    }
+
+    // 2. LOGIKA JUDUL OTOMATIS (Sesuai Pilihan Plant/Area)
+    if (judulHeader) {
+        if (!plant && !area) {
+            judulHeader.innerText = "LAPORAN REGU SHIFT TERPADU (BIDANG MEKANIKAL)";
+        } else if (plant && !area) {
+            judulHeader.innerText = `LAPORAN PEKERJAAN MEKANIKAL - ${plant.toUpperCase()}`;
+        } else if (!plant && area) {
+            judulHeader.innerText = `LAPORAN PEKERJAAN MEKANIKAL - AREA ${area.toUpperCase()}`;
+        } else {
+            judulHeader.innerText = `LAPORAN PEKERJAAN ${plant.toUpperCase()} - AREA ${area.toUpperCase()}`;
+        }
+    }
+
+    // 3. LOGIKA PERIODE TANGGAL (Format Indonesia)
+    if (labelPeriode) {
+        const opsi = { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        const tglMulai = new Date(startVal).toLocaleString('id-ID', opsi);
+        const tglSelesai = new Date(endVal).toLocaleString('id-ID', opsi);
+        labelPeriode.innerText = `Periode: ${tglMulai} s/d ${tglSelesai} WIB`;
+    }
+
+    // 4. BERSIHKAN TABEL SEBELUM ISI DATA (Agar tidak double)
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sedang menarik data dari database Pusri...</td></tr>';
+
+    // 5. AMBIL DATA DARI SUPABASE DENGAN FILTER
+    try {
+        let query = _supabase.from('pekerjaan').select('*');
+
+        // Filter Waktu (Wajib)
+        query = query.gte('created_at', startVal).lte('created_at', endVal);
+
+        // Filter Plant & Area (Jika dipilih)
+        if (plant) query = query.eq('plant', plant);
+        if (area) query = query.eq('area', area);
+
+        const { data, error } = await query.order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        // 6. RENDER KE TABEL
+        renderTable(data);
+
+    } catch (err) {
+        console.error("Gagal ambil data:", err.message);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:red;">Error: ${err.message}</td></tr>`;
+    }
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('reportContent');
+    tbody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada data ditemukan.</td></tr>';
+        return;
+    }
+data.forEach(x => {
+    const item = x.nomor_item || "-";
+    const wo = x.nomor_notif || "-";
+    const keluhan = x.deskripsi || "-"; 
+    const tindakan = x.tindakan_pekerjaan || "-"; 
+    const pnr = x.pnr || "-";
+    const prog = x.progres ?? 0;
+    const durasi = x.durasi_kerja || "-"; // Pastikan kolom ini ada di Supabase
+
+    let mpList = Array.isArray(x.manpower) ? x.manpower.join(', ') : (x.manpower || "-");
+
+    // Di dalam loop renderTable Bapak:
+tbody.innerHTML += `
+    <tr>
+        <td class="text-center"><b>${x.plant || '-'}</b><br><small>${item}</small></td>
+        <td class="text-center"><b>${wo}</b></td>
+        
+        <td class="text-italic" style="min-width: 100px;">${keluhan}</td>
+        
+        <td>${tindakan}</td>
+        
+        <td style="min-width: 80px;">
+            <small><b>${pnr}</b><br><span style="color:#666;">${mpList}</span></small>
+        </td>
+        
+        <td class="text-center">
+            <b>${prog}%</b><br>
+            <small style="font-size: 8px;">${durasi}</small>
+        </td>
+    </tr>`;
+});
+}
+// --- LOGIKA TANDA TANGAN (CANVAS) ---
+const canvas = document.getElementById('signature-pad');
+const ctx = canvas ? canvas.getContext('2d') : null;
+let drawing = false;
+
+if (canvas) {
+    // Inisialisasi gaya garis
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
+
+    // Event Mouse (Desktop)
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', draw);
+
+    // Event Touch (HP/Tablet)
+    canvas.addEventListener('touchstart', (e) => {
+        drawing = true;
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent("mousedown", {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+        e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        drawing = false;
+        ctx.beginPath();
+        e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        draw({
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        e.preventDefault();
+    }, { passive: false });
+}
+
+function draw(e) {
+    if (!drawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+}
+
+// Fungsi hapus tanda tangan
+function clearSignature() {
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+</script>

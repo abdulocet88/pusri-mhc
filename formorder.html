@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUSRI MHC - Form Order & Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --pusri-blue: #004a99;
+            --pusri-gold: #ffd700;
+            --safety: #ff8c00;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --light: #f4f7fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background: var(--pusri-blue);
+            padding: 10px 25px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-dash {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            border: 1px solid white;
+            transition: 0.3s;
+        }
+
+        .btn-dash:hover {
+            background: var(--pusri-gold);
+            color: var(--pusri-blue);
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            border-top: 5px solid var(--pusri-gold);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        input:disabled,
+        select:disabled {
+            background: #eee;
+            cursor: not-allowed;
+        }
+
+        .safety-box {
+            background: #fffcf0;
+            border: 2px dashed var(--safety);
+            padding: 15px;
+            border-radius: 10px;
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-wa {
+            background: #25d366;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-save {
+            background: var(--pusri-blue);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-save:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #f4f4f4;
+            padding: 12px;
+            font-size: 11px;
+            text-align: left;
+            text-transform: uppercase;
+            color: #666;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Style tambahan untuk Progres Bar di tabel */
+        .Progres-bg {
+            background: #eee;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+            width: 80px;
+        }
+
+        .Progres-fill {
+            height: 100%;
+            transition: 0.3s;
+        }
+
+        /* Styling Status di Form Order */
+        .form-status-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1.2;
+        }
+
+        #syncStatusText {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .cloud-icon {
+            font-size: 20px;
+            margin: 2px 0;
+            display: inline-block;
+            color: white;
+            /* Warna default */
+            line-height: 1;
+            -webkit-text-fill-color: currentColor;
+            /* Memaksa warna mengikuti properti 'color' */
+        }
+
+        .form-clock {
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--pusri-gold);
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="btn-dash">🏠 KEMBALI KE DASHBOARD</a>
+        <div style="flex-grow: 1; text-align: center;">ROSYID MHC | MONITORING FORM ORDER</div>
+
+        <div class="form-status-wrapper">
+            <div id="syncStatusText">CHECKING...</div>
+            <div id="icon" class="cloud-icon">☁️</div>
+            <div id="formClock" class="form-clock">00:00:00</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card no-print">
+            <div class="card-header">I. INPUT DATA ORDER PEMELIHARAAN</div>
+            <div class="form-grid">
+                <div>
+                    <label>1. Plant</label>
+                    <select id="fPlant" onchange="logicStep1()">
+                        <option value="">-- Pilih Plant --</option>
+                        <option>Pusri 1B</option>
+                        <option>Pusri 2B</option>
+                        <option>Pusri 3</option>
+                        <option>Pusri 3B</option>
+                        <option>Pusri 4</option>
+                        <option>STG BB</option>
+                        <option>PPU</option>
+                        <option>NPK</option>
+                    </select>
+                </div>
+                <div id="areaCont">
+                    <label>2. Area Kerja</label>
+                    <select id="fArea" disabled onchange="logicStep2()">
+                        <option value="">-- Pilih Area --</option>
+                        <option>Amonia</option>
+                        <option>Urea</option>
+                        <option>Utility</option>
+                    </select>
+                </div>
+                <div>
+                    <label>3. Departemen Pelaksana</label>
+                    <select id="fdepartemen" disabled onchange="logicStep3(); autoChecknotif();">
+                        <option value="">-- Pilih Departemen --</option>
+                        <option value="Mechanical">Mechanical</option>                        
+                        <option value="Instrumen">Instrumen</option>
+                        <option value="Inspeksi">Inspeksi</option>
+                        <option value="Supporting">Supporting</option>
+                    </select>
+                </div>
+                <div id="suppCont" class="hidden">
+                    <label>Pilihan Supporting</label>
+                    <select id="fSubdepartemen">
+                        <option>Alat Berat</option>
+                        <option>Pipe Shop</option>
+                        <option>Mesin Shop</option>
+                    </select>
+                </div>
+                <div>
+                <label>4. Nomor Item (Tag Number)</label>
+                <input type="text" id="fItem" list="list_item_pabrik" placeholder="Ketik/Pilih Nomor Item..." oninput="logicStep4()" disabled>
+                <datalist id="list_item_pabrik"></datalist>
+            </div>
+            </div>
+                <div>
+                <label>5. Nomor notif</label>
+                <input type="text" id="fnotif" readonly oninput="validatenotifUnique()">
+                <small id="notifHint" style="display: block; margin-top: 5px; font-size: 10px;"></small>
+            </div>
+
+                <div class="safety-box">
+                    <div>
+                        <label style="color:var(--safety)">Safety Permit Request</label>
+                        <select id="fPermit">
+                            <option value="">-- Tanpa Permit --</option>
+                            <option>Hot Work</option>
+                            <option>Cold Work</option>
+                            <option>Confined Space</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="color:var(--safety)">Upload Signed Permit</label>
+                        <input type="file" id="fPermitFile" accept="image/*">
+                    </div>
+                </div>
+
+               <div style="padding: 15px 20px; display: flex; flex-direction: row; gap: 10px; align-items: flex-end;">
+
+            <div style="flex: 2;"> 
+                <label style="display: block; font-size: 12px; margin-bottom: 5px;">6. Deskripsi Order</label>
+                <textarea id="fKet" rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 12px; margin-bottom: 5px;">WhatsApp PIC</label>
+                <input type="text" id="fWA" placeholder="08..." onblur="formatWA(this)" style="width: 100%; box-sizing: border-box; height: 38px;">
+            </div>
+            <button type="button" id="btnKontak" onclick="pilihKontak()">👤</button>
+
+            <div style="flex: 1.5;">
+                <label style="display: block; font-size: 12px; margin-bottom: 5px;">7. Penerima (PIC)</label>
+                <input type="text" id="fPenerima" placeholder="Nama..." oninput="this.value=this.value.toUpperCase()" style="width: 100%; box-sizing: border-box; height: 38px;">
+            </div>
+
+            <div style="flex: 1.5;">
+                <label style="display: block; font-size: 12px; margin-bottom: 5px;">8. Pemberi (PIC)</label>
+                <input type="text" id="fPemberi" placeholder="Nama..." oninput="this.value=this.value.toUpperCase()" style="width: 100%; box-sizing: border-box; height: 38px;">
+            </div>
+
+        </div>
+
+        <div style="padding: 0 20px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn btn-wa" onclick="kirimWA()">1. KIRIM WA</button>
+            <button class="btn btn-save" id="btnSimpan" disabled onclick="saveData()">2. SIMPAN ORDER</button>
+        </div>
+        <div class="card">
+            <div class="card-header">II. MONITORING HISTORY & Progres TERKINI</div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>UPDATE</th>
+                        <th>NO. Notif</th>
+                        <th>DEPT</th> <th>PLANT/AREA</th>
+                        <th>ITEM/LOKASI</th>
+                        <th>PIC Pemberi/Penerima</th>
+                        <th>DESKRIPSI</th>
+                        <th>STATUS</th>
+                        <th>AKSI</th>
+                    </tr>                   
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // Baru di bawahnya masukkan config Bapak
+ const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
+  
+  // Pastikan variabel 'supabase' (huruf kecil semua) dipanggil untuk membuat klien
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let cloudData = []; // Variabel penampung data dari Google Sheets
+        let listNomorItemUrea = [];
+
+       // --- 1. GLOBAL VARIABLE ---
+let daftarItemPabrik = []; // Wadah untuk validasi nanti
+
+// --- 2. FUNGSI AMBIL DATA (Satu kali panggil saat buka web) ---
+// --- 2. FUNGSI AMBIL DATA (Satu kali panggil saat buka web) ---
+async function fetchItemReferences() {
+    try {
+        console.log("Menarik data item dari Supabase...");
+        const { data, error } = await _supabase
+            .from('nomor_item_urea_p1b')
+            .select('nomor_item_urea_p1b');
+
+        if (error) throw error;
+
+        const itemsRaw = data.map(row => row.nomor_item_urea_p1b).filter(Boolean);
+        const items = [...new Set(itemsRaw)]; 
+        
+        // Simpan ke variabel global buat validasi logicStep4
+        daftarItemPabrik = items.map(i => i.toString().toUpperCase()); 
+        
+        const datalist = document.getElementById('list_item_pabrik');
+        if (datalist) {
+            datalist.innerHTML = ""; 
+            items.sort().forEach(item => {
+                let option = document.createElement('option');
+                option.value = item;
+                datalist.appendChild(option);
+            });
+        }
+        console.log("✅ Daftar 194 Item Berhasil Dimuat dari Supabase");
+    } catch (err) {
+        console.error("❌ Gagal muat item:", err);
+    }
+}
+// --- 3. LOGIC STEPS (GABUNGAN) ---
+// --- 3. LOGIC STEPS (GABUNGAN) ---
+
+function logicStep1() {
+    const p = document.getElementById('fPlant').value;
+    const areaCont = document.getElementById('areaCont');
+    const area = document.getElementById('fArea');
+    const dept = document.getElementById('fdepartemen');
+    const itemInput = document.getElementById('fItem');
+
+    // RESET & KUNCI semua bawahan setiap Plant ganti
+    area.value = ""; 
+    area.disabled = true;
+    dept.value = ""; 
+    dept.disabled = true;
+    itemInput.value = "";
+    itemInput.disabled = true;
+
+    if (p !== "") {
+        if (['STG BB', 'PPU', 'NPK'].includes(p)) {
+            // JALUR KHUSUS: NPK/PPU/STG BB
+            areaCont.classList.add('hidden'); 
+            area.value = "N/A"; 
+            dept.disabled = false; // LANGSUNG BUKA DEPT
+            console.log("Plant Khusus: Langsung ke Departemen");
+        } else {
+            // JALUR UMUM: Pusri 1B, dll
+            areaCont.classList.remove('hidden'); 
+            area.disabled = false; // BUKA AREA DULU
+            console.log("Plant Umum: Harus pilih Area");
+        }
+    }
+}
+function logicStep2() {
+    const p = document.getElementById('fPlant').value;
+    const a = document.getElementById('fArea').value;
+    const dept = document.getElementById('fdepartemen');
+    const itemInput = document.getElementById('fItem');
+    
+    // Reset bawahan
+    dept.value = ""; 
+    itemInput.value = "";
+    itemInput.disabled = true;
+
+    // Buka Dept hanya jika Area sudah ada isinya
+    if (a !== "") {
+        dept.disabled = false;
+    } else {
+        dept.disabled = true;
+    }
+    
+    // Logika Saklar Datalist Supabase
+    if (p === "Pusri 1B" && a === "Urea") {
+        itemInput.setAttribute("list", "list_item_pabrik");
+    } else {
+        itemInput.removeAttribute("list");
+    }
+}
+
+function logicStep3() {
+    const d = document.getElementById('fdepartemen').value;
+    const itemInput = document.getElementById('fItem');
+    const suppCont = document.getElementById('suppCont');
+    
+    if (suppCont) suppCont.className = (d === 'Supporting' ? '' : 'hidden');
+    
+    // Buka Item hanya jika Dept dipilih
+    if (d !== "") {
+        itemInput.disabled = false;
+    } else {
+        itemInput.disabled = true;
+    }
+}
+
+function logicStep4() {
+    const itemInput = document.getElementById('fItem');
+    const itemValue = itemInput.value.trim().toUpperCase();
+    const p = document.getElementById('fPlant').value;
+    const a = document.getElementById('fArea').value;
+    const notifInput = document.getElementById('fnotif'); 
+    const hint = document.getElementById('notifHint');
+
+    itemInput.style.border = "1px solid #ccc";
+    itemInput.style.backgroundColor = "white"; // Reset warna background
+    hint.innerHTML = "";
+
+    // 1. CEK VALIDASI (Khusus Urea P1B)
+    let isError = false;
+    if (p === "Pusri 1B" && a === "Urea" && daftarItemPabrik.length > 0) {
+        if (itemValue !== "" && !daftarItemPabrik.includes(itemValue)) {
+            isError = true;
+        }
+    }
+
+    // 2. JIKA ERROR (Item Tidak Terdaftar)
+    if (isError) {
+        hint.innerHTML = `<span style="color:red; font-weight:bold;">⚠️ ITEM TIDAK TERDAFTAR!</span>`;
+        itemInput.style.border = "2px solid red";
+        
+        // MATIKAN KOLOM NOTIF
+        notifInput.value = "";
+        notifInput.readOnly = true; 
+        notifInput.style.background = "#f8d7da"; // Merah muda tanda error
+        return; 
+    }
+
+    // 3. JIKA VALID (Atau bukan Urea P1B)
+    if (itemValue !== "" && p === "Pusri 1B" && a === "Urea") {
+        itemInput.style.backgroundColor = "#d4edda"; // Hijau jika valid
+    }
+
+    // Panggil penjaga untuk cek apakah ini order baru atau lama
+    if (typeof autoChecknotif === "function") {
+        autoChecknotif();
+    }
+}
+
+// --- 4. ONLOAD (VERSI SUPABASE) ---
+document.addEventListener('DOMContentLoaded', async function() {
+    // 1. Jalankan Jam
+    if (typeof updateFormClock === "function") {
+        updateFormClock(); // Jalankan sekali di awal
+        setInterval(updateFormClock, 1000);
+    }
+
+    // 2. Cek Koneksi ke Supabase (Supaya status "Checking" berubah jadi Hijau)
+    if (typeof checkSyncStatus === "function") {
+        await checkSyncStatus(); 
+        setInterval(checkSyncStatus, 10000); // Cek ulang tiap 10 detik
+    }
+
+    // 3. Ambil 194 Referensi Item dari tabel 'nomor_item_urea_p1b'
+    await fetchItemReferences(); 
+    logicStep2(); // Memaksa input untuk langsung menempel ke datalist
+
+    // 4. Muat Data Tabel Monitoring
+    if (typeof renderTable === "function") {
+        await renderTable();
+    }
+
+    console.log("Aplikasi MHC Siap & Terhubung ke Supabase");
+});
+
+// Fungsi formatWA tetap sama (tidak berubah)
+function formatWA(el) {
+    let val = el.value.replace(/\D/g, '');
+    if (val.startsWith('0')) val = '62' + val.substring(1);
+    el.value = val;
+}
+
+        // --- 2. FUNGSI AUTO CHECK & VALIDASI (LOGIKA FINAL) ---
+function autoChecknotif() {
+    console.log("Mengecek data di Supabase...", cloudData);
+    const item = document.getElementById('fItem').value.trim().toUpperCase();
+    const dept = document.getElementById('fdepartemen').value;
+    const hint = document.getElementById('notifHint');
+    const notifInput = document.getElementById('fnotif');
+    const btn = document.getElementById('btnSimpan');
+
+    if (!dept || !item) {
+        hint.innerHTML = "";
+        return;
+    }
+
+    // Cari di cloudData yang diambil dari Supabase
+    const activeOrder = cloudData.find(row =>
+        (row.nomor_item || "").toString().trim().toUpperCase() === item &&
+        (row.departemen || "").toString() === dept &&
+        (row.status || "").toString().toLowerCase() !== "closed"
+    );
+
+    if (activeOrder) {
+        // Melanjutkan Notif yang belum Closed di Supabase
+        notifInput.value = activeOrder.nomor_notif; 
+        notifInput.readOnly = true; 
+        notifInput.style.background = "#f0f0f0";
+        hint.innerHTML = `<span style="color:blue; font-weight:bold;">ℹ️ MELANJUTKAN NOTIF AKTIF ${dept}: ${activeOrder.nomor_notif}</span>`;
+        if (btn) btn.disabled = false; 
+    } else {
+        // Siklus Baru
+        notifInput.value = "";
+        notifInput.readOnly = false; 
+        notifInput.style.background = "white";
+        hint.innerHTML = `<span style="color:green; font-weight:bold;">✨ SIAP UNTUK SIKLUS ORDER BARU</span>`;
+        
+        if (typeof validatenotifUnique === "function") {
+            validatenotifUnique(); 
+        }
+    }
+}
+
+function validatenotifUnique() {
+    const notifVal = document.getElementById('fnotif').value.trim().toUpperCase();
+    const itemVal = document.getElementById('fItem').value.trim().toUpperCase();
+    const dept = document.getElementById('fdepartemen').value;
+    const hint = document.getElementById('notifHint');
+    const btn = document.getElementById('btnSimpan');
+
+    // 1. Validasi dasar
+    if (!notifVal) { 
+        if(btn) btn.disabled = true; 
+        return; 
+    }
+
+    // 2. Jika input dikunci (mode lanjut order), lewati
+    if (document.getElementById('fnotif').readOnly) return;
+
+    // 3. Cari di cloudData (pastikan nama kolom menggunakan huruf kecil sesuai Supabase)
+    const duplicate = cloudData.find(row =>
+        (row.nomor_notif || "").toString().trim().toUpperCase() === notifVal &&
+        (row.status || "").toString().toLowerCase() !== "closed"
+    );
+
+    if (duplicate) {
+        // Ambil data pembanding dari baris yang ditemukan
+        const itemLama = (duplicate.nomor_item || "").toString().toUpperCase();
+        const deptLama = (duplicate.departemen || "").toString();
+
+        if (itemLama !== itemVal) {
+            hint.innerHTML = `<span style="color:red; font-weight:bold;">⚠️ GAGAL: Notif ${notifVal} sudah dipakai Item ${itemLama}!</span>`;
+            document.getElementById('fnotif').style.border = "2px solid red";
+            if(btn) btn.disabled = true;
+        } 
+        else if (deptLama !== dept) {
+            hint.innerHTML = `<span style="color:red; font-weight:bold;">⚠️ GAGAL: Notif ${notifVal} sudah aktif di Dept: ${deptLama}!</span>`;
+            document.getElementById('fnotif').style.border = "2px solid red";
+            if(btn) btn.disabled = true;
+        }
+        else {
+            // JIKA ITEM & DEPT SAMA -> BERARTI LANJUTAN ORDER
+            hint.innerHTML = `<span style="color:blue; font-weight:bold;">ℹ️ LANJUTKAN ORDER: Notif sesuai dengan Item & Dept.</span>`;
+            document.getElementById('fnotif').style.border = "1px solid #ccc";
+            if(btn) btn.disabled = false; // AKTIFKAN TOMBOL
+        }
+    } else {
+        // Jika nomor notif belum ada di database
+        hint.innerHTML = `<span style="color:green">✅ Nomor notif tersedia</span>`;
+        document.getElementById('fnotif').style.border = "1px solid #ccc";
+        if(btn) btn.disabled = false;
+    }
+}
+
+        function kirimWA() {
+            const wa = document.getElementById('fWA').value;
+            const notif = document.getElementById('fnotif').value;
+            const pemberi = document.getElementById('fPemberi').value; // Ambil dari ID Label 8
+            const penerima = document.getElementById('fPenerima').value; // Ambil dari ID Label 7
+            const plant = document.getElementById('fPlant').value;
+            const area = document.getElementById('fArea').value;
+            const item = document.getElementById('fItem').value;
+            const dept = document.getElementById('fdepartemen').value;
+            const elket = document.getElementById('fKet').value;
+
+            if (!wa || !pemberi || !penerima) {
+                return alert("Lengkapi Nama Pemberi, Penerima, dan No. WA Pelaksana!");
+            }
+
+            const pesan = 
+            `*ORDER PEMELIHARAAN MHC*%0A-------------------------%0A
+            *Kepada Yth:* ${penerima}%0A%0AMohon bantuan tindak lanjut pekerjaan berikut:%0A
+            *Deskripsi:*  ${elket}%0A
+            *Unit:* ${plant}%0A
+            *Area:* ${area}%0A
+            *Item:* ${item}%0A
+            *No. notif:* ${notif}%0A
+            *Dept:* ${dept}%0A-------------------------%0A
+            *Pemberi Order:* ${pemberi}%0A-------------------------%0A_
+            Harap update Progres melalui sistem._`;
+
+            document.getElementById('btnSimpan').disabled = false;
+            window.open(`https://wa.me/${wa}?text=${pesan}`, '_blank');
+        }
+async function pilihKontak() {
+    // 1. Cek apakah HP mendukung fitur ini
+    const supported = ('contacts' in navigator && 'ContactsManager' in window);
+    
+    if (supported) {
+        try {
+            // 2. Tentukan data apa yang mau diambil (Nama dan Nomor HP)
+            const props = ['name', 'tel'];
+            const opts = { multiple: false }; // Kita cuma butuh 1 kontak
+
+            // 3. Buka daftar kontak HP
+            const contacts = await navigator.contacts.select(props, opts);
+
+            if (contacts.length > 0) {
+                const kontak = contacts[0];
+                let nomor = kontak.tel[0];
+
+                // 4. Bersihkan nomor (Hapus spasi, strip, atau tanda +)
+                // Dan pastikan depannya 62 (Format WhatsApp)
+                nomor = nomor.replace(/[^0-9]/g, ''); // Ambil angka saja
+                if (nomor.startsWith('0')) {
+                    nomor = '62' + nomor.slice(1);
+                }
+
+                // 5. Masukkan ke input fWA
+                document.getElementById('fWA').value = nomor;
+                
+                // Opsional: Masukkan nama ke input penerima
+                if (kontak.name) {
+                    document.getElementById('fPenerima').value = kontak.name[0];
+                }
+            }
+        } catch (ex) {
+            console.log("Gagal mengambil kontak: " + ex);
+        }
+    } else {
+        alert("Browser kamu tidak mendukung fitur pilih kontak. Silakan ketik manual.");
+    }
+}
+async function pilihKontak() {
+    // alert-nya dihapus/dibuang saja
+    
+    const supported = ('contacts' in navigator && 'ContactsManager' in window);
+    
+    if (supported) {
+        try {
+            const props = ['name', 'tel'];
+            const opts = { multiple: false };
+
+            const contacts = await navigator.contacts.select(props, opts);
+
+            if (contacts.length > 0) {
+                const kontak = contacts[0];
+                let nomor = kontak.tel[0];
+
+                // Proses pembersihan nomor WA
+                nomor = nomor.replace(/[^0-9]/g, ''); 
+                if (nomor.startsWith('0')) {
+                    nomor = '62' + nomor.slice(1);
+                }
+
+                document.getElementById('fWA').value = nomor;
+                
+                if (kontak.name) {
+                    document.getElementById('fPenerima').value = kontak.name[0];
+                }
+            }
+        } catch (ex) {
+            console.log("Gagal mengambil kontak: " + ex);
+        }
+    } else {
+        alert("Browser kamu tidak mendukung fitur pilih kontak. Silakan ketik manual.");
+    }
+}
+        // --- 3. FUNGSI SAVE (DENGAN PERMIT) ---
+        // --- 3. FUNGSI SAVE (VERSI UPDATE: KIRIM KE GOOGLE SHEETS & KOMPRESI FOTO) ---
+       async function saveData() {
+    try {
+        const btn = document.getElementById('btnSimpan');
+        const statusText = document.getElementById('syncStatusText'); 
+        const fileInput = document.getElementById('fPermitFile'); 
+
+        // A. Ambil Elemen (Tetap Sama)
+        const elPlant = document.getElementById('fPlant').value;
+        const elArea = document.getElementById('fArea').value || "N/A";
+        const elDept = document.getElementById('fdepartemen').value;
+        const elItem = document.getElementById('fItem').value.trim().toUpperCase();
+        const elnotif = document.getElementById('fnotif').value.trim();
+        const elPemberi = document.getElementById('fPemberi').value.trim().toUpperCase();
+        const elPenerima = document.getElementById('fPenerima').value.trim().toUpperCase();
+        const elKet = document.getElementById('fKet').value;
+        const elPermit = document.getElementById('fPermit').value;
+
+        // B. Validasi (Tetap Sama)
+        if (!elPlant || !elDept || !elItem || !elnotif || !elPemberi || !elKet) {
+            return alert("Mohon lengkapi semua data wajib!");
+        }
+
+        // C. Animasi Tombol
+        btn.disabled = true;
+        btn.innerText = "⏳ SEDANG MENGIRIM...";
+        if(statusText) statusText.innerText = "CONNECTING TO SUPABASE...";
+
+        // D. Proses Foto Permit (Tetap Sama)
+        let fotoBase64 = "";
+        if (fileInput.files.length > 0) {
+            fotoBase64 = await kompresGambar(fileInput.files[0]);
+        }
+
+        // E. PROSES STRUK DIGITAL (HTML2CANVAS) - Tetap Sama
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = "fixed";
+        tempDiv.style.left = "-9999px"; 
+        tempDiv.innerHTML = `
+            <div id="capture-area" style="width: 400px; padding: 20px; background: white; font-family: sans-serif; border: 5px solid #004a99;">
+                <h2 style="text-align:center; color:#004a99;">MAINTENANCE ORDER</h2>
+                <hr>
+                <table style="width:100%; font-size:14px;">
+                    <tr><td><b>Plant/Area</b></td><td>: ${elPlant} / ${elArea}</td></tr>
+                    <tr><td><b>Tag Item</b></td><td>: ${elItem}</td></tr>
+                    <tr><td><b>No. notif</b></td><td>: ${elnotif}</td></tr>
+                    <tr><td><b>Deskripsi</b></td><td>: ${elKet}</td></tr>
+                </table>
+                <br>
+                <img src="${fotoBase64 || ''}" style="width:100%; ${fotoBase64 ? '' : 'display:none;'} border:1px solid #ccc;">
+            </div>`;
+        document.body.appendChild(tempDiv);
+        const canvas = await html2canvas(document.getElementById('capture-area'));
+        const evidenceFinal = canvas.toDataURL("image/jpeg", 0.7);
+        document.body.removeChild(tempDiv); 
+// F. LOGIKA CARI PROGRESS TERAKHIR & UPDATE MASSAL
+        let progresTerakhir = 0;
+        try {
+            // 1. Ambil progress terakhir dari database
+            const { data: lastRecord } = await _supabase
+                .from('pekerjaan')
+                .select('progres')
+                .eq('nomor_notif', elnotif)
+                .order('id', { ascending: false })
+                .limit(1);
+
+            if (lastRecord && lastRecord.length > 0) {
+                progresTerakhir = lastRecord[0].progres || 0;
+            }
+
+            // 2. SINKRONISASI: Update SEMUA baris lama agar progresnya sama dengan yang terbaru
+            // Ini memastikan satu nomor notif jadi satu kesatuan progres
+            await _supabase
+                .from('pekerjaan')
+                .update({ 
+                    progres: progresTerakhir,
+                    status: progresTerakhir >= 100 ? "Closed" : (progresTerakhir > 0 ? "In Progress" : "outstanding")
+                })
+                .eq('nomor_notif', elnotif);
+
+        } catch (e) {
+            console.log("Gagal sinkronisasi progres, tapi lanjut simpan.");
+        }
+
+        // G. SUSUN PAKET DATA BARU (HISTORY BARU)
+        let statusOtomatis = "outstanding";
+        if (progresTerakhir > 0 && progresTerakhir < 100) {
+            statusOtomatis = "In Progress";
+        } else if (progresTerakhir >= 100) {
+            statusOtomatis = "Closed";
+        }
+
+        const dataBaru = {
+            plant: elPlant,
+            area: elArea,
+            departemen: elDept,
+            nomor_item: elItem,
+            nomor_notif: elnotif,
+            permit: elPermit,
+            deskripsi: elKet, // Isi keluhan baru/kegiatan baru
+            penerima: elPenerima,
+            pemberi: elPemberi,
+            evidence_form: evidenceFinal,
+            foto_permit: fotoBase64,
+            status: statusOtomatis, 
+            progres: progresTerakhir 
+        };
+
+        // G2. KIRIM BARIS BARU KE SUPABASE
+        const { data, error } = await _supabase
+            .from('pekerjaan')
+            .insert([dataBaru]);
+
+        if (error) throw error;
+        // H. JIKA BERHASIL
+        alert("✅ DATA BERHASIL DISIMPAN KE SUPABASE!");
+        
+        // Reset Form
+        document.getElementById('fItem').value = "";
+        document.getElementById('fnotif').value = "";
+        document.getElementById('fKet').value = "";
+        fileInput.value = "";
+        
+        // Refresh Tabel Dashboard agar data baru muncul
+        if (typeof renderTable === "function") await renderTable();
+
+    } catch (err) {
+        console.error(err);
+        alert("❌ GAGAL SIMPAN: " + err.message);
+    } finally {
+        const btn = document.getElementById('btnSimpan');
+        btn.disabled = false;
+        btn.innerText = "2. SIMPAN ORDER & HISTORY";
+        if(document.getElementById('syncStatusText')) {
+            document.getElementById('syncStatusText').innerText = "SUPABASE ONLINE";
+        }
+    }
+}
+
+
+       // --- 4. RENDER TABEL (VERSI SUPABASE - SUPER CEPAT) ---
+async function renderTable() {
+    const tbody = document.getElementById('historyBody');
+    if (!tbody) return;
+
+    // 1. Ambil semua nilai filter (Tetap Sama)
+    const fStart = document.getElementById('tFilterStart')?.value || "";
+    const fEnd = document.getElementById('tFilterEnd')?.value || "";
+    const fP = document.getElementById('tFilterPlant')?.value || "";
+    const fA = document.getElementById('tFilterArea')?.value || "";
+    const fI = (document.getElementById('tFilterItem')?.value || "").toUpperCase();
+    const fN = (document.getElementById('tFilternotif')?.value || "").toUpperCase();
+    const fS = document.getElementById('tFilterStatus')?.value || "";
+    const fPr = document.getElementById('tFilterProgres')?.value || "";
+    const fK = (document.getElementById('tFilterKendala')?.value || "").toUpperCase();
+    const fket = (document.getElementById('tFilterDeskripsi')?.value || "").toUpperCase();
+    const fDept = document.getElementById('tFilterDept')?.value || "";
+
+    tbody.innerHTML = "<tr><td colspan='11' style='text-align:center;'>🔄 Sinkronisasi Supabase...</td></tr>";
+
+    try {
+        // --- 2. AMBIL DATA DARI SUPABASE ---
+        // Sesuai logika Bapak: Kita filter di sini agar yang sudah "Finish" atau "Closed" 
+        // tidak menumpuk di monitoring utama jika sudah dibukukan.
+        const { data: dataSupabase, error } = await _supabase
+            .from('pekerjaan')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        cloudData = dataSupabase;
+        tbody.innerHTML = "";
+
+        dataSupabase.forEach((row) => {
+            const tgl = new Date(row.created_at);
+            const waktu = tgl.toLocaleString('id-ID');
+            const plant = row.plant || "";
+            const area = row.area || "";
+            const departemen = row.departemen || "";
+            const item = (row.nomor_item || "").toString().trim().toUpperCase();
+            const notif = (row.nomor_notif || "").toString(); 
+            const pemberi = row.pemberi || "-";
+            const penerima = row.penerima || "-";
+            const deskripsi = row.deskripsi || "";
+            const statusDB = row.status || ""; // Status asli dari database
+            const progres = parseInt(row.progres || 0);
+            const kendala = row.kendala || "";
+
+            if (typeof hiddennotif !== 'undefined' && hiddennotif.includes(notif)) return;
+
+            // --- 3. LOGIKA LABEL STATUS YANG DISINKRONKAN ---
+            let sLabel = statusDB;
+            let color = 'var(--pusri-blue)';
+
+            // Perbaikan Logika: Jika status sudah Finish/Closed dari simpanFinal
+            if (statusDB.toLowerCase() === 'finish' || statusDB.toLowerCase() === 'closed') {
+                sLabel = "Closed"; 
+                color = 'var(--success)';
+            } else if (statusDB.toLowerCase() === "waiting approval" || progres >= 100) {
+                sLabel = "Verifikasi"; 
+                color = 'var(--success)';
+            } else if (kendala && kendala !== "-") {
+                sLabel = "Pending"; 
+                color = '#ef4444';
+            } else if (progres > 0) {
+                sLabel = "In Progres"; 
+                color = 'var(--pusri-blue)';
+            } else {
+                sLabel = "Outstanding"; 
+                color = '#ea580c';
+            }
+
+            // --- 4. FILTERING (Tetap Sama) ---
+            let matchT = true;
+            if (fStart || fEnd) {
+                const orderDate = row.created_at.split('T')[0];
+                matchT = (!fStart || orderDate >= fStart) && (!fEnd || orderDate <= fEnd);
+            }
+            const matchP = !fP || plant === fP;
+            const matchA = !fA || area === fA;
+            const matchI = !fI || item.includes(fI);
+            const matchN = !fN || notif.includes(fN);
+            const matchS = !fS || sLabel.toUpperCase().includes(fS.toUpperCase());
+            const matchPr = !fPr || progres.toString().includes(fPr);
+            const matchK = !fK || kendala.toUpperCase().includes(fK);
+            const matchKet = !fket || deskripsi.toUpperCase().includes(fket);
+            const matchDept = !fDept || departemen.toUpperCase() === fDept.toUpperCase();
+
+            // --- 5. RENDER KE TABEL ---
+            if (matchP && matchA && matchI && matchKet && matchN && matchT && matchS && matchPr && matchK && matchDept) {
+                let tombolApprove = "";
+                if (sLabel === "Verifikasi") {
+                    tombolApprove = `<button onclick="approvenotif('${notif}')" style="border:none; background:#22c55e; color:white; cursor:pointer; padding:6px 10px; border-radius:4px; font-size:11px; font-weight:bold; margin-bottom:5px; display:block; width:100%;">✅ APPROVE</button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><small>${waktu}</small></td>
+                        <td><b>${notif}</b></td> 
+                        <td><small>${departemen}</small></td>
+                        <td><small>${area}</small></td>
+                        <td>${item}<br><small style="color:gray">${plant}</small></td>
+                        <td><small>${pemberi} / ${penerima}</small></td>
+                        <td><small>${deskripsi}</small></td>
+                        <td>
+                            <b style="color:${color}">${sLabel}</b>
+                            ${(kendala && kendala !== "-") ? `<br><small style="color:orange">⚠️ ${kendala}</small>` : ''}
+                            <div class="Progres-bg" style="background:#eee; height:8px; border-radius:4px; margin-top:5px;">
+                                <div class="Progres-fill" style="width:${progres}%; background:${color}; height:10px; border-radius:4px;"></div>
+                            </div>
+                            <span style="font-size:10px">${progres}%</span>
+                        </td>
+                        <td class="no-print" style="text-align:center; vertical-align:middle;">
+                            ${tombolApprove}
+                            <button onclick="hapusLokal('${notif}')" style="border:none; background:none; cursor:pointer; font-size:16px;">🗑️</button>
+                        </td>
+                    </tr>`;
+            }
+        });
+    } catch (err) {
+        console.error("Error Detail:", err);
+        tbody.innerHTML = "<tr><td colspan='11' style='text-align:center; color:red;'>Gagal Sinkron Supabase.</td></tr>";
+    }
+}
+// --- 5. SYSTEM CLOCK & SYNC (VERSI SUPABASE) ---
+function updateFormClock() {
+    const el = document.getElementById('formClock');
+    if (!el) return;
+    const now = new Date();
+    el.innerText = now.getHours().toString().padStart(2, '0') + ":" + 
+                   now.getMinutes().toString().padStart(2, '0') + ":" + 
+                   now.getSeconds().toString().padStart(2, '0');
+}
+
+async function checkSyncStatus() {
+    const icon = document.getElementById('icon');
+    const statusText = document.getElementById('syncStatusText');
+
+    if (!icon || !statusText) return;
+
+    if (navigator.onLine) {
+        try {
+            // Cek koneksi dengan melakukan "Ping" ringan ke Supabase
+            // Kita cuma minta 1 baris data saja (limit 1) biar hemat kuota
+            const { error } = await _supabase.from('pekerjaan').select('id').limit(1);
+            
+            if (error) throw error;
+
+            // Jika sukses: Hijau (Online)
+            icon.style.filter = "drop-shadow(0 0 5px #48bb78) sepia(100%) hue-rotate(90deg) saturate(500%)";
+            statusText.innerText = "SUPABASE ONLINE";
+            statusText.style.color = "white"; // Sesuaikan dengan navbar Bapak
+        } catch (e) {
+            // Jika internet ada tapi Supabase tidak respon (Server Busy)
+            statusText.innerText = "DATABASE BUSY";
+            icon.style.filter = "drop-shadow(0 0 5px #ffd700) sepia(100%) hue-rotate(10deg) saturate(500%)";
+        }
+    } else {
+        // Jika kabel internet putus/tidak ada sinyal
+        icon.style.filter = "drop-shadow(0 0 5px #f87171) sepia(100%) hue-rotate(0deg) saturate(500%)";
+        statusText.innerText = "OFFLINE";
+        statusText.style.color = "#f87171";
+    }
+}
+
+        function buatFilter() {
+    const container = document.querySelector('.card:last-child');
+    if (container && !document.getElementById('tFilterPlant')) {
+        const fDiv = document.createElement('div');
+        fDiv.className = "no-print";
+        fDiv.style = "background:#f1f5f9; padding:15px; display:flex; flex-direction:column; gap:10px; border-bottom:1px solid #ddd;";
+        fDiv.innerHTML = `
+        <div style="display:flex; flex-direction:row; gap:10px; flex-wrap:wrap;">
+            <select id="tFilterPlant" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
+                <option value="">Semua Plant</option>
+                <option>Pusri 1B</option><option>Pusri 2B</option><option>Pusri 3</option>
+                <option>Pusri 3B</option><option>Pusri 4</option><option>STG BB</option><option>PPU</option><option>NPK</option>
+            </select>
+            <select id="tFilterArea" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
+                <option value="">Semua Area</option>
+                <option>Amonia</option><option>Urea</option><option>Utility</option>
+            </select>
+
+           <select id="tFilterDept" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
+                <option value="">-- Semua Dept --</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Instrumen">Instrumen</option>
+                <option value="Inspeksi">Inspeksi</option>
+                <optgroup label="Supporting">
+                    <option value="Supporting">Semua Supporting</option>
+                    <option value="Alat Berat">-- Alat Berat</option>
+                    <option value="Pipe Shop">-- Pipe Shop</option>
+                    <option value="Mesin Shop">-- Mesin Shop</option>
+                </optgroup>
+            </select>
+
+            <select id="tFilterStatus" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
+                <option value="">-- Semua Status --</option>
+                <option value="Outstanding">Outstanding</option>
+                <option value="In Progres">In Progres</option>
+                <option value="Pending">Pending</option>
+                <option value="Verifikasi">Verifikasi</option>
+                <option value="Closed">Closed</option>
+            </select>
+        </div> 
+        <div style="display:flex; flex-direction:row; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+            <div style="display:flex; gap:5px; align-items:center; background:white; padding:4px 8px; border:1px solid #ccc; border-radius:4px; min-width:250px;">
+                <input type="date" id="tFilterStart" onchange="renderTable()" style="border:none; outline:none; font-size:12px; cursor:pointer;">
+                <span style="font-size:12px; color:#666;">-</span>
+                <input type="date" id="tFilterEnd" onchange="renderTable()" style="border:none; outline:none; font-size:12px; cursor:pointer;">
+            </div>
+            <input type="text" id="tFilterItem" placeholder="Cari Item..." oninput="renderTable()" style="padding:7px; border-radius:4px; border:1px solid #ccc; flex:2; min-width:150px;">
+            <input type="text" id="tFilternotif" placeholder="Cari notif..." oninput="renderTable()" style="padding:7px; border-radius:4px; border:1px solid #ccc; flex:1; min-width:100px;">
+        </div>`;
+        const tableDiv = container.querySelector('div[style*="overflow-x:auto"]');
+        container.insertBefore(fDiv, tableDiv);
+    }
+}
+
+
+
+        async function kompresGambar(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        // Mengecilkan resolusi ke 1024px (lebar) agar tidak pecah tapi ringan
+                        const MAX_WIDTH = 1024;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Hasil akhirnya adalah teks (Base64) dengan kualitas 0.6 (60%)
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        }
+
+async function approvenotif(notif) {
+    if (!confirm("Konfirmasi: Approve dan Close notif " + notif + "?")) return;
+
+    const tbody = document.getElementById('historyBody');
+    tbody.innerHTML = "<tr><td colspan='11' style='text-align:center;'>⏳ Mengirim Approval ke Supabase...</td></tr>";
+
+    try {
+        const { error } = await _supabase
+            .from('pekerjaan')
+            .update({ status: 'Closed' }) // Ubah status jadi Closed
+            .eq('nomor_notif', notif);    // Cari yang nomor notifnya sesuai
+
+        if (error) throw error;
+
+        alert("✅ Berhasil di-Approve & Closed!");
+        renderTable(); // Langsung tarik data terbaru
+
+    } catch (err) {
+        alert("Gagal Approve: " + err.message);
+        renderTable();
+    }
+}
+        function setFilterStatus(status) {
+            // 1. Masukkan status yang dipilih ke kotak filter tersembunyi
+            document.getElementById('tFilterStatus').value = status;
+
+            // 2. Jalankan ulang renderTable untuk menyaring data
+            renderTable();
+
+            // 3. (Opsional) Tambahkan efek visual tombol aktif jika Bapak mau
+            console.log("Menampilkan data dengan status: " + (status || "Semua"));
+        }
+        // Jalankan jam dan render tabel saat pertama kali buka
+        // Jalankan jam setiap detik
+setInterval(updateFormClock, 1000);
+// Cek koneksi Supabase setiap 5 detik
+setInterval(checkSyncStatus, 5000);
+// Buat filter sekali saja
+buatFilter();
+        // Modifikasi fungsi logicStep1 untuk aturan khusus Pusri 1B - Urea
+function hapusLokal(notif) {
+    // Cari tombol yang diklik, lalu cari elemen 'tr' (baris) terdekatnya
+    // Kita gunakan event.target untuk tahu tombol mana yang ditekan
+    const tombol = event.target;
+    const baris = tombol.closest('tr'); 
+
+    if (baris) {
+        if (confirm("Sembunyikan Notif " + notif + " dari tampilan ini saja?")) {
+            baris.style.transition = "0.3s";
+            baris.style.opacity = "0"; // Efek memudar
+            
+            setTimeout(() => {
+                baris.remove(); // Hapus baris dari tabel HTML
+            }, 300);
+            
+            console.log("Notif " + notif + " dihapus dari tampilan lokal.");
+        }
+    }
+}
+
+
+    </script>
+</body>
+
+</html>
