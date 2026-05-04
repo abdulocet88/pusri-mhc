@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PUSRI MHC - Form Order & Monitoring</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --pusri-blue: #004a99;
@@ -65,6 +66,8 @@
             margin-bottom: 25px;
             border-top: 5px solid var(--pusri-gold);
             overflow: hidden;
+            padding: 40px;
+            min-height: 800px;
         }
 
         .card-header {
@@ -72,13 +75,6 @@
             padding: 15px;
             border-bottom: 1px solid #eee;
             font-weight: bold;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            padding: 20px;
         }
 
         label {
@@ -102,7 +98,7 @@
             display: inline-block;
             color: white;
             line-height: 1;
-            transition: 0.3s; /* Tambahkan ini agar transisi warna halus */
+            transition: 0.3s;
         }
 
         .form-clock {
@@ -111,143 +107,133 @@
             color: var(--pusri-gold);
         }
 
-        :root { --pusri-blue: #004a99; --pusri-gold: #ffd700; --soft-bg: #f4f7fa; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--soft-bg); margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 1200px; margin: auto; }
-        
-        /* Filter Panel */
         .filter-panel { 
             background: #1e293b; color: white; padding: 20px; border-radius: 12px; 
-            margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
             gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
+        
         .filter-group label { display: block; font-size: 11px; margin-bottom: 5px; font-weight: bold; color: var(--pusri-gold); }
         select, input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; box-sizing: border-box; }
-        .btn-search { background: var(--pusri-gold); border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        
+        .btn-search { background: var(--pusri-gold); border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; color: var(--pusri-blue); }
         .btn-search:hover { background: #e6c200; transform: translateY(-2px); }
 
         /* Report Paper Style */
-        .card { background: white; padding: 40px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; min-height: 800px; }
         .report-header { display: flex; align-items: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
         .report-title { flex-grow: 1; text-align: center; }
-        .report-title h2 { margin: 0; color: #000; font-size: 18px; text-transform: uppercase; }
+        .report-title h4, .report-title h5 { margin: 2px 0; }
+        .report-title h2 { margin: 5px 0; color: #000; font-size: 18px; text-transform: uppercase; }
         .report-title p { margin: 5px 0; font-size: 12px; font-weight: bold; }
 
-        /* --- CSS TABEL TEROPTIMASI --- */
-/* Update CSS Tabel Bapak */
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    table-layout: auto; /* Biarkan browser menghitung lebar otomatis */
-    font-size: 10px;
-    margin-top: 10px;
-}
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            table-layout: auto; 
+            font-size: 10px;
+            margin-top: 10px;
+        }
 
-th, td { 
-    border: 1px solid #000; 
-    padding: 5px; 
-    vertical-align: top;
-    line-height: 1.2;
-}
+        th, td { 
+            border: 1px solid #000; 
+            padding: 5px; 
+            vertical-align: top;
+            line-height: 1.2;
+        }
 
-/* KUNCI: Kolom Identitas, Notif, dan Prog dibuat mepet (1%) */
-th:nth-child(1), td:nth-child(1), /* Identitas */
-th:nth-child(2), td:nth-child(2), /* Notif/WO */
-th:nth-child(6), td:nth-child(6)  /* Prog */ {
-    width: 1%;
-    white-space: nowrap; /* Teks tidak akan turun baris di sini */
-}
+        th:nth-child(1), td:nth-child(1),
+        th:nth-child(2), td:nth-child(2), 
+        th:nth-child(6), td:nth-child(6) {
+            width: 1%;
+            white-space: nowrap; 
+        }
 
-/* KELUHAN & MANPOWER: Boleh turun baris tapi jangan terlalu lebar */
-th:nth-child(3), td:nth-child(3), 
-th:nth-child(5), td:nth-child(5) {
-    width: 15%; 
-    white-space: normal;
-}
+        th:nth-child(3), td:nth-child(3), 
+        th:nth-child(5), td:nth-child(5) {
+            width: 15%; 
+            white-space: normal;
+        }
 
-/* TINDAKAN: Mengambil sisa ruang paling besar */
-th:nth-child(4), td:nth-child(4) {
-    width: 100%;
-    white-space: normal;
-}
+        th:nth-child(4), td:nth-child(4) {
+            width: 100%;
+            white-space: normal;
+        }
 
-@media print {
-    /* Sembunyikan Navbar, Tombol Filter, dan tombol Cetak */
-    .navbar, 
-    .no-print, 
-    .filter-panel, 
-    .btn-back,
-    .btn-dash { 
-        display: none !important; 
-    }
+        @media print {
+            .navbar, 
+            .no-print, 
+            .filter-panel, 
+            .btn-back,
+            .btn-dash { 
+                display: none !important; 
+            }
 
-    /* Hilangkan background abu-abu body agar hemat tinta */
-    body { 
-        background: white; 
-        padding: 0; 
-        margin: 0;
-    }
+            body { 
+                background: white; 
+                padding: 0; 
+                margin: 0;
+            }
 
-    /* Pastikan kertas laporan menggunakan seluruh lebar halaman */
-    .card { 
-        box-shadow: none; 
-        border: none; 
-        padding: 0; 
-        margin: 0;
-        width: 100%;
-    }
+            .card { 
+                box-shadow: none; 
+                border: none; 
+                padding: 0; 
+                margin: 0;
+                width: 100%;
+            }
 
-    .container {
-        max-width: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
+            .container {
+                max-width: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
 
-    /* Hilangkan garis bawah pada input nama saat dicetak agar terlihat bersih */
-    .input-nama-badge { 
-        border-bottom: none !important; 
-    }
-}
-.input-nama-badge {
-    width: 200px; /* Batasi lebar agar tidak mentok ke pinggir */
-    border: none;
-    border-bottom: 1px solid #000; /* Hanya garis bawah */
-    text-align: center; /* Teks di tengah */
-    padding: 5px 0;
-    margin-top: 5px;
-    font-family: inherit;
-    outline: none;
-    background: transparent;
-}
+            .input-nama-badge { 
+                border-bottom: none !important; 
+            }
+        }
+        
+        .input-nama-badge {
+            width: 200px;
+            border: none;
+            border-bottom: 1px solid #000;
+            text-align: center;
+            padding: 5px 0;
+            margin-top: 5px;
+            font-family: inherit;
+            outline: none;
+            background: transparent;
+        }
 
-.sig-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Semua elemen tanda tangan jadi rata tengah */
-    text-align: center;
-}
+        .sig-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
 
-.canvas-wrap {
-    position: relative;
-    border: 1px dashed #ccc; /* Beri bingkai tipis agar tahu batas coretan */
-    margin: 10px 0;
-    background: #fff;
-}
-</style>
+        .canvas-wrap {
+            position: relative;
+            border: 1px dashed #ccc;
+            margin: 10px 0;
+            background: #fff;
+        }
+        .text-center { text-align: center; }
+        .text-italic { font-style: italic; }
+    </style>
 </head>
 <body>
 <nav class="navbar">
-        <a href="index.html" class="btn-dash">🏠 KEMBALI KE DASHBOARD</a>
-        <div style="flex-grow: 1; text-align: center;">ROSYID MHC | MONITORING FORM ORDER</div>
+    <a href="index.html" class="btn-dash">🏠 KEMBALI KE DASHBOARD</a>
+    <div style="flex-grow: 1; text-align: center;">ROSYID MHC | MONITORING FORM ORDER</div>
 
-        <div class="form-status-wrapper">
-            <div id="syncStatusText">CHECKING...</div>
-            <div id="icon" class="cloud-icon">☁️</div>
-            <div id="formClock" class="form-clock">00:00:00</div>
-        </div>
-    </nav>
-
+    <div class="form-status-wrapper">
+        <div id="syncStatusText">CHECKING...</div>
+        <div id="icon" class="cloud-icon">☁️</div>
+        <div id="formClock" class="form-clock">00:00:00</div>
+    </div>
+</nav>
 
 <div class="container">
     <a href="dept-mechanical.html" class="no-print" style="text-decoration:none; color:var(--pusri-blue); font-weight:bold; display:inline-block; margin-bottom:10px;">← Kembali ke Menu Mekanikal</a>
@@ -255,33 +241,72 @@ th:nth-child(4), td:nth-child(4) {
     <div class="filter-panel no-print">
         <div class="filter-group">
             <label>Plant</label>
-            <select id="fPlant">
-                <option value="">Semua Plant (Shift Terpadu)</option>
-                <option>Pusri 1B</option><option>Pusri 2B</option><option>Pusri 3</option>
-                <option>Pusri 4</option><option>STG BB</option><option>PPU</option><option>NPK</option>
+            <select id="fPlant" onchange="toggleShiftFilter()">
+                <option value="">-- Semua Plant --</option>
+                <option value="SHIFT TERPADU">SELURUH PLANT / SHIFT TERPADU</option>
+                <option>Pusri 1B</option>
+                <option>Pusri 2B</option>
+                <option>Pusri 3</option>
+                <option>Pusri 4</option>
+                <option>STG BB</option>
+                <option>PPU</option>
+                <option>NPK</option>
             </select>
         </div>
+
+        <div id="groupShiftWrapper" class="filter-group" style="display: none;">
+            <label>Group Shift</label>
+            <select id="fGroupShift">
+                <option value="">-- Pilih Group --</option>
+                <option value="A">SHIFT A</option>
+                <option value="B">SHIFT B</option>
+                <option value="C">SHIFT C</option>
+                <option value="D">SHIFT D</option>
+            </select>
+        </div>
+
         <div class="filter-group">
             <label>Area</label>
             <select id="fArea">
                 <option value="">Semua Area</option>
-                <option>Amonia</option><option>Urea</option><option>Offsite</option><option>Utilitas</option>
+                <option>Amonia</option>
+                <option>Urea</option>
+                <option>Offsite</option>
             </select>
         </div>
-        <div class="filter-group">
-        <label>Mulai (Tanggal & Jam)</label>
-        <input type="datetime-local" id="filterStart" step="1">
-    </div>
-    <div class="filter-group">
-        <label>Selesai (Tanggal & Jam)</label>
-        <input type="datetime-local" id="filterEnd" step="1">
-    </div>
-    <div class="filter-group" style="display: flex; align-items: flex-end;">
-        <button class="btn-search" onclick="fetchDataWithTime()">Tampilkan Laporan</button>
-    </div>
-</div>
 
-    <div class="card">
+        <div class="filter-group">
+            <label>Cari Item / Deskripsi</label>
+            <input type="text" id="fSearchItem" placeholder="Ketik nomor item...">
+        </div>
+
+        <div class="filter-group">
+            <label>Mulai (Tanggal & Jam)</label>
+            <input type="datetime-local" id="filterStart" step="1">
+        </div>
+        
+        <div class="filter-group">
+            <label>Selesai (Tanggal & Jam)</label>
+            <input type="datetime-local" id="filterEnd" step="1">
+        </div>
+
+        <div class="filter-group" style="display: flex; align-items: flex-end;">
+            <button class="btn-search" onclick="fetchDataWithTime()">Tampilkan Laporan</button>
+        </div>
+        
+        <div class="filter-group">
+            <label>Cari File di Cloud</label>
+            <input type="text" id="fCariCloud" placeholder="Cari Laporan_Pusri...">
+        </div>
+
+        <div class="filter-group" style="display: flex; align-items: flex-end;">
+            <button class="btn-search" style="background-color: #3b82f6; color: white;" onclick="cariLaporanCloud(document.getElementById('fCariCloud').value)">
+                Cari di Cloud
+            </button>
+        </div>
+    </div>
+
+    <div class="card" id="printArea">
         <div class="report-header">
             <div style="width: 80px;">
                 <img src="https://upload.wikimedia.org/wikipedia/id/thumb/d/d4/Logo_Pusri.svg/1200px-Logo_Pusri.svg.png" width="70" alt="Logo">
@@ -293,51 +318,66 @@ th:nth-child(4), td:nth-child(4) {
                 <p id="labelPeriode">Periode: -</p>
             </div>
             <div class="no-print">
-                <button onclick="window.print()" style="cursor:pointer; padding: 8px 15px; background:var(--pusri-blue); color:white; border:none; border-radius:5px;">Cetak PDF</button>
+                <button onclick="downloadPDF()" style="cursor:pointer; padding: 8px 15px; background:var(--success); color:white; border:none; border-radius:5px; margin-right: 5px;" data-html2canvas-ignore>Cetak PDF</button>
+                <button onclick="prosesSimpanCloud()" style="cursor:pointer; padding: 8px 15px; background:var(--pusri-blue); color:white; border:none; border-radius:5px;" data-html2canvas-ignore>Simpan ke Cloud</button>
             </div>
         </div>
 
         <table>
             <thead>
-            <tr>
-                <th>IDENTITAS ALAT</th> <th>NOTIF / WO</th>
-                <th>KELUHAN (OPS)</th>
-                <th>TINDAKAN (MECH)</th>
-                <th>MANPOWER</th>
-                <th>PROG</th>
-            </tr>
-        </thead>
+                <tr>
+                    <th>IDENTITAS ALAT</th>
+                    <th>NOTIF / WO</th>
+                    <th>KELUHAN (OPS)</th>
+                    <th>TINDAKAN (MECH)</th>
+                    <th>PIC/MANPOWER</th>
+                    <th>PROG</th>
+                </tr>
+            </thead>
             <tbody id="reportContent">
                 <tr><td colspan="6" class="text-center">Gunakan filter di atas dan klik tombol Tampilkan Laporan.</td></tr>
             </tbody>
         </table>
 
-<div class="sig-container" style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 50px;">
-    <div class="sig-box">
-        <p>Palembang, <span id="tglSekarang">-</span></p>
-        <p style="font-size: 11px; margin-bottom: 5px;">Supervisor / Foreman:</p>
-        
-        <div class="canvas-wrap">
-            <canvas id="signature-pad" width="280" height="130"></canvas>
-            <button onclick="clearSignature()" class="no-print" style="position: absolute; top: 0; right: 0; font-size: 10px; background: red; color: white; border: none; cursor: pointer; padding: 2px 5px;">Reset</button>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <input type="text" class="input-nama-badge" placeholder="( Nama Jelas )" style="font-weight: bold;">
-            <input type="text" class="input-nama-badge" placeholder="Badge / NIK" style="font-size: 11px; border-bottom: none;">
+        <div class="sig-container no-print" style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 50px;">
+            <div class="sig-box">
+                <p>Palembang, <span id="tglSekarang">-</span></p>
+                <p style="font-size: 11px; margin-bottom: 5px;">Supervisor / Foreman:</p>
+                
+                <div class="canvas-wrap">
+                    <canvas id="signature-pad" width="280" height="130"></canvas>
+                    <button onclick="clearSignature()" style="position: absolute; top: 0; right: 0; font-size: 10px; background: red; color: white; border: none; cursor: pointer; padding: 2px 5px;">Reset</button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <input type="text" class="input-nama-badge" placeholder="( Nama Jelas )" style="font-weight: bold;">
+                    <input type="text" class="input-nama-badge" placeholder="Badge / NIK" style="font-size: 11px; border-bottom: none;">
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
- // --- CONFIG SUPABASE ---
+// --- CONFIG SUPABASE ---
 const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
 
-// Inisialisasi Client (Gunakan nama variabel yang konsisten)
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// --- TOGGLE FILTER DINAMIS ---
+function toggleShiftFilter() {
+    const plant = document.getElementById('fPlant').value;
+    const groupWrapper = document.getElementById('groupShiftWrapper');
+    if (plant === "SHIFT TERPADU") {
+        groupWrapper.style.display = "block";
+    } else {
+        groupWrapper.style.display = "none";
+        document.getElementById('fGroupShift').value = ""; // Reset jika plant diubah
+    }
+}
 
 // --- FUNGSI CEK KONEKSI ---
 async function checkSyncStatus() {
@@ -348,17 +388,13 @@ async function checkSyncStatus() {
         const { data, error } = await _supabase.from('pekerjaan').select('id').limit(1);
         if (error) throw error;
 
-        // --- EFEK JIKA BERHASIL (ONLINE) ---
         statusText.innerText = "SUPABASE ONLINE";
         statusText.style.color = "#25d366"; 
         
         icon.style.color = "#25d366"; 
-        // Trik: drop-shadow memberikan warna di luar, sepia/hue-rotate mengubah warna emoji asli
         icon.style.filter = "drop-shadow(0 0 5px #25d366) sepia(100%) hue-rotate(90deg) saturate(300%)"; 
         icon.innerText = "☁️"; 
-        
     } catch (err) {
-        // --- EFEK JIKA GAGAL (OFFLINE) ---
         statusText.innerText = "OFFLINE / ERROR";
         statusText.style.color = "#dc2626"; 
         
@@ -368,18 +404,12 @@ async function checkSyncStatus() {
     }
 }
 
-// --- JALANKAN OTOMATIS SAAT HALAMAN DIBUKA ---
+// --- JALANKAN OTOMATIS ---
 window.onload = function() {
-    // 1. Jalankan pengecekan koneksi pertama kali
     checkSyncStatus();
-    
-    // 2. Jalankan jam digital
     setInterval(updateFormClock, 1000);
-    
-    // 3. (Opsional) Cek ulang koneksi tiap 30 detik agar tetap terpantau
     setInterval(checkSyncStatus, 30000);
     
-    // 4. Set tanggal otomatis di bagian tanda tangan
     const tgl = new Date().toLocaleDateString('id-ID', { 
         day: 'numeric', 
         month: 'long', 
@@ -389,7 +419,6 @@ window.onload = function() {
     if(tglEl) tglEl.innerText = tgl;
 };
 
-// --- FUNGSI JAM DIGITAL (Pastikan ini ada) ---
 function updateFormClock() {
     const clockEl = document.getElementById('formClock');
     if (clockEl) {
@@ -398,11 +427,13 @@ function updateFormClock() {
     }
 }
 
-// --- FUNGSI UTAMA TAMPILKAN LAPORAN (Satu Fungsi untuk Semua) ---
+// --- FUNGSI TAMPILKAN LAPORAN ---
 async function fetchDataWithTime() {
-    // 1. AMBIL NILAI DARI INPUT FILTER
     const plant = document.getElementById('fPlant').value;
     const area = document.getElementById('fArea').value;
+    const groupShift = document.getElementById('fGroupShift').value;
+    const searchItem = document.getElementById('fSearchItem').value.toLowerCase();
+    
     const startVal = document.getElementById('filterStart').value;
     const endVal = document.getElementById('filterEnd').value;
     
@@ -415,9 +446,11 @@ async function fetchDataWithTime() {
         return;
     }
 
-    // 2. LOGIKA JUDUL OTOMATIS (Sesuai Pilihan Plant/Area)
+    // Set Judul
     if (judulHeader) {
         if (!plant && !area) {
+            judulHeader.innerText = "LAPORAN SEMUA PLANT (BIDANG MEKANIKAL)";
+        } else if (plant === "SHIFT TERPADU") {
             judulHeader.innerText = "LAPORAN REGU SHIFT TERPADU (BIDANG MEKANIKAL)";
         } else if (plant && !area) {
             judulHeader.innerText = `LAPORAN PEKERJAAN MEKANIKAL - ${plant.toUpperCase()}`;
@@ -428,7 +461,7 @@ async function fetchDataWithTime() {
         }
     }
 
-    // 3. LOGIKA PERIODE TANGGAL (Format Indonesia)
+    // Set Periode
     if (labelPeriode) {
         const opsi = { 
             weekday: 'long', 
@@ -443,30 +476,137 @@ async function fetchDataWithTime() {
         labelPeriode.innerText = `Periode: ${tglMulai} s/d ${tglSelesai} WIB`;
     }
 
-    // 4. BERSIHKAN TABEL SEBELUM ISI DATA (Agar tidak double)
     tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sedang menarik data dari database Pusri...</td></tr>';
 
-    // 5. AMBIL DATA DARI SUPABASE DENGAN FILTER
     try {
         let query = _supabase.from('pekerjaan').select('*');
 
-        // Filter Waktu (Wajib)
+        // Waktu Wajib
         query = query.gte('created_at', startVal).lte('created_at', endVal);
 
-        // Filter Plant & Area (Jika dipilih)
-        if (plant) query = query.eq('plant', plant);
+        // Filter Database
+        if (plant && plant !== "SHIFT TERPADU") {
+            query = query.eq('plant', plant);
+        }
         if (area) query = query.eq('area', area);
 
         const { data, error } = await query.order('created_at', { ascending: true });
-
         if (error) throw error;
 
-        // 6. RENDER KE TABEL
-        renderTable(data);
+        // Client Side Filter
+        let filteredData = data;
+
+        if (plant === "SHIFT TERPADU" && groupShift) {
+            filteredData = filteredData.filter(x => {
+                const mp = String(x.manpower || "").toUpperCase();
+                return mp.includes(`SHIFT ${groupShift}`) || mp.includes(`GROUP ${groupShift}`);
+            });
+        }
+
+        if (searchItem) {
+            filteredData = filteredData.filter(x => {
+                return (x.nomor_item || "").toLowerCase().includes(searchItem) || 
+                       (x.deskripsi || "").toLowerCase().includes(searchItem);
+            });
+        }
+
+        renderTable(filteredData);
 
     } catch (err) {
         console.error("Gagal ambil data:", err.message);
         tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:red;">Error: ${err.message}</td></tr>`;
+    }
+}
+
+// --- FUNGSI CARI FILE DI CLOUD ---
+async function cariLaporanCloud(keyword) {
+    if (!keyword) {
+        alert("Masukkan kata kunci pencarian, misalnya: Laporan_Pusri");
+        return;
+    }
+
+    const tbody = document.getElementById('reportContent');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sedang mencari file di cloud...</td></tr>';
+
+    const { data, error } = await _supabase
+        .storage
+        .from('Laporan Harian')
+        .list('', {
+            limit: 100,
+            offset: 0,
+            sortBy: { column: 'name', order: 'asc' },
+            search: keyword
+        });
+
+    if (error) {
+        console.error('Error mencari file:', error);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:red;">Error mencari file: ${error.message}</td></tr>`;
+        alert('Gagal mencari file: ' + error.message);
+    } else {
+        console.log('Hasil pencarian:', data);
+        tbody.innerHTML = "";
+
+        if (data && data.length > 0) {
+            data.forEach(file => {
+                const sizeMB = (file.metadata?.size / 1024 / 1024).toFixed(2) || "N/A";
+                tbody.innerHTML += `
+                    <tr>
+                        <td colspan="2"><b>${file.name}</b></td>
+                        <td>Ukuran: ${sizeMB} MB</td>
+                        <td colspan="3" style="text-align: center; vertical-align: middle;">
+                            <button onclick="downloadLaporanCloud('${file.name}')" style="background:#16a34a; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-right: 5px;">Download</button>
+                            <button onclick="bukaLaporanCloud('${file.name}')" style="background:#004a99; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Buka</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada file yang cocok dengan kata kunci tersebut.</td></tr>';
+        }
+    }
+}
+
+// --- FUNGSI DOWNLOAD FILE DARI CLOUD ---
+async function downloadLaporanCloud(namaFile) {
+    if (!namaFile) {
+        alert("Nama file tidak ditemukan!");
+        return;
+    }
+
+    try {
+        const { data, error } = await _supabase
+            .storage
+            .from('Laporan Harian')
+            .download(namaFile);
+
+        if (error) throw error;
+
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = namaFile;
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Gagal mendownload file:', error.message);
+        alert('Gagal mendownload file: ' + error.message);
+    }
+}
+
+// --- FUNGSI BUKA FILE DI TAB BARU ---
+function bukaLaporanCloud(namaFile) {
+    const { data } = _supabase
+        .storage
+        .from('Laporan Harian')
+        .getPublicUrl(namaFile);
+        
+    if (data && data.publicUrl) {
+        window.open(data.publicUrl, '_blank');
+    } else {
+        alert('Gagal membuat link untuk file ini.');
     }
 }
 
@@ -475,58 +615,121 @@ function renderTable(data) {
     tbody.innerHTML = "";
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada data ditemukan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada data ditemukan.</td></tr>';
         return;
     }
-data.forEach(x => {
-    const item = x.nomor_item || "-";
-    const wo = x.nomor_notif || "-";
-    const keluhan = x.deskripsi || "-"; 
-    const tindakan = x.tindakan_pekerjaan || "-"; 
-    const pnr = x.pnr || "-";
-    const prog = x.progres ?? 0;
-    const durasi = x.durasi_kerja || "-"; // Pastikan kolom ini ada di Supabase
+    
+    data.forEach(x => {
+        const item = x.nomor_item || "-";
+        const wo = x.nomor_notif || "-";
+        const keluhan = x.deskripsi || "-"; 
+        const tindakan = x.tindakan_pekerjaan || "-"; 
+        const pnr = x.pnr || "-";
+        const prog = x.progres ?? 0;
+        const durasi = x.durasi_kerja || "-";
 
-    let mpList = Array.isArray(x.manpower) ? x.manpower.join(', ') : (x.manpower || "-");
+        let mpList = Array.isArray(x.manpower) ? x.manpower.join(', ') : (x.manpower || "-");
 
-    // Di dalam loop renderTable Bapak:
-tbody.innerHTML += `
-    <tr>
-        <td class="text-center"><b>${x.plant || '-'}</b><br><small>${item}</small></td>
-        <td class="text-center"><b>${wo}</b></td>
-        
-        <td class="text-italic" style="min-width: 100px;">${keluhan}</td>
-        
-        <td>${tindakan}</td>
-        
-        <td style="min-width: 80px;">
-            <small><b>${pnr}</b><br><span style="color:#666;">${mpList}</span></small>
-        </td>
-        
-        <td class="text-center">
-            <b>${prog}%</b><br>
-            <small style="font-size: 8px;">${durasi}</small>
-        </td>
-    </tr>`;
-});
+        tbody.innerHTML += `
+            <tr>
+                <td class="text-center"><b>${x.plant || '-'}</b><br><small>${item}</small></td>
+                <td class="text-center"><b>${wo}</b></td>
+                <td class="text-italic" style="min-width: 100px;">${keluhan}</td>
+                <td>${tindakan}</td>
+                <td style="min-width: 80px;">
+                    <span style="color:#3b82f6; font-weight:bold;">PIC: ${x.penerima || pnr || '-'}</span><br>
+                    <span style="color:#666;">${mpList}</span>
+                </td>
+                <td class="text-center">
+                    <b>${prog}%</b><br>
+                    <small style="font-size: 8px;">${durasi}</small>
+                </td>
+            </tr>`;
+    });
 }
+
+// --- FUNGSI PROSES SIMPAN KE CLOUD ---
+async function prosesSimpanCloud() {
+    const element = document.getElementById('printArea'); 
+    
+    const plant = document.getElementById('fPlant').value || 'Semua_Plant';
+    const area = document.getElementById('fArea').value || 'Semua_Area';
+    
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    const pdfBlob = pdf.output('blob');
+
+    const now = new Date();
+    const tglStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const cleanPlant = plant.replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanArea = area.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    const namaFile = `Laporan_${cleanPlant}_${cleanArea}_${tglStr}.pdf`;
+
+    const { data, error } = await _supabase.storage
+        .from('Laporan Harian')
+        .upload(namaFile, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: true
+        });
+
+    if (error) {
+        alert("Gagal simpan ke Cloud: " + error.message);
+    } else {
+        alert("Berhasil! Laporan tersimpan dengan nama: " + namaFile);
+    }
+}
+
+// --- FUNGSI DOWNLOAD/CETAK PDF (CLIENT-SIDE) ---
+function downloadPDF() {
+    const element = document.getElementById('printArea');
+    const now = new Date();
+    const namaFile = `Laporan_${now.getDate()}${now.getMonth()+1}${now.getFullYear()}_${now.getHours()}${now.getMinutes()}.pdf`;
+
+    const opt = {
+        margin:       10,
+        filename:     namaFile,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        alert("PDF berhasil diunduh.");
+    }).catch((err) => {
+        alert("Gagal mencetak PDF: " + err.message);
+    });
+}
+
 // --- LOGIKA TANDA TANGAN (CANVAS) ---
 const canvas = document.getElementById('signature-pad');
 const ctx = canvas ? canvas.getContext('2d') : null;
 let drawing = false;
 
-if (canvas) {
-    // Inisialisasi gaya garis
+if (ctx) {
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#000';
 
-    // Event Mouse (Desktop)
-    canvas.addEventListener('mousedown', () => drawing = true);
-    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        draw(e);
+    });
+    canvas.addEventListener('mouseup', () => { 
+        drawing = false; 
+        ctx.beginPath(); 
+    });
     canvas.addEventListener('mousemove', draw);
 
-    // Event Touch (HP/Tablet)
     canvas.addEventListener('touchstart', (e) => {
         drawing = true;
         const touch = e.touches[0];
@@ -546,11 +749,11 @@ if (canvas) {
 
     canvas.addEventListener('touchmove', (e) => {
         const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        draw({
+        const mouseEvent = new MouseEvent("mousemove", {
             clientX: touch.clientX,
             clientY: touch.clientY
         });
+        canvas.dispatchEvent(mouseEvent);
         e.preventDefault();
     }, { passive: false });
 }
@@ -567,10 +770,12 @@ function draw(e) {
     ctx.moveTo(x, y);
 }
 
-// Fungsi hapus tanda tangan
 function clearSignature() {
     if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
     }
 }
 </script>
+</body>
+</html>

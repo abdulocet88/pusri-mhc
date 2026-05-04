@@ -346,7 +346,7 @@
     <option value="">-- Semua Area --</option>
     <option value="Amonia">Amonia</option>
     <option value="Urea">Urea</option>
-    <option value="Offside">Offside</option>   
+    <option value="Offsite">Offsite</option>   
   </select>
 </div>
 
@@ -471,7 +471,7 @@
                 <option value="">Semua Area</option>
                 <option>Amonia</option>
                 <option>Urea</option>
-                <option>Offside</option>               
+                <option>Offsite</option>               
             </select>
          </div>
          <div>
@@ -1132,13 +1132,22 @@ function renderHist() {
                     <span class="mp-chip" style="background:${getStatusColor(row.status)}; color:white; border:none; ${!isTerbaru ? 'opacity:0.6;' : ''}">
                         ${row.status || 'Outstanding'}
                     </span>
-                </td>
-                <td class="no-print">
-                <button class="btn-blue" 
-                    style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block; ${!isTerbaru ? 'background:#94a3b8; border-color:#94a3b8;' : ''}" 
-                    onclick="${isTerbaru ? `pilihNotif('${row.nomor_notif}')` : `tampilkanLogReadOnly('${row.id}')`}">
-                    ${isTerbaru ? '📝 EDIT / DETAIL' : '👁️ LIHAT LOG'}
-                </button>
+                        
+                 <td class="no-print">
+                ${(row.progres >= 100 || (row.status || "").toLowerCase() === 'finish') 
+                    ? `
+                    <button class="btn-gray" 
+                        style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block; background:#64748b; border-color:#64748b;" 
+                        onclick="tampilkanLogReadOnly('${row.id}')">
+                        👁️ LIHAT LOG
+                    </button>`
+                    : `
+                    <button class="btn-blue" 
+                        style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block;" 
+                        onclick="pilihNotif('${row.nomor_notif}')">
+                        📝 EDIT / DETAIL
+                    </button>`
+                }
             </td>
             </tr>
         `;
@@ -1160,7 +1169,7 @@ function tampilkanLogReadOnly(idBaris) {
                 listFoto = data.foto_pekerjaan;
             } else {
                 // Jika String, kita pecah pakai koma (semua jenis koma)
-                listFoto = data.foto_pekerjaan.split(",");
+                listFoto = data.foto_pekerjaan.split(" , ");
             }
 
             // 2. Bersihkan setiap URL/Base64 dari spasi atau karakter enter
@@ -1197,6 +1206,7 @@ function tampilkanLogReadOnly(idBaris) {
                 <div><b>Waktu:</b><br>${new Date(data.created_at).toLocaleString('id-ID')}</div>
                 <div><b>Nomor Notif:</b><br><span style="color:#e11d48; font-weight:bold;">${data.nomor_notif}</span></div>
                 <div><b>PIC:</b><br>${data.penerima || "-"}</div>
+                <div><b>Manpower:</b><br>${data.manpower || "-"}</div>
                 <div><b>Progres Akhir:</b><br><span style="padding:2px 8px; background:#004a99; color:white; border-radius:10px;">${data.progres}%</span></div>
             </div>
 
