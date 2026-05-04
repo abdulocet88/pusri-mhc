@@ -346,7 +346,7 @@
     <option value="">-- Semua Area --</option>
     <option value="Amonia">Amonia</option>
     <option value="Urea">Urea</option>
-    <option value="Utility">Utility</option>   
+    <option value="Offside">Offside</option>   
   </select>
 </div>
 
@@ -393,9 +393,19 @@
 
       <button id="btnPermit" class="btn-action btn-permit" style="display:none;" onclick="openPermit()">📄 LIHAT SAFETY
         PERMIT</button>
+        <label>Kategori Pekerjaan</label>
+<select id="kategori_pekerjaan">
+    <option value="">-- Pilih Kategori --</option>
+    <option value="PM">PM (Preventive Maintenance)</option>
+    <option value="PdM">PdM (Predictive Maintenance)</option>
+    <option value="Corrective">Corrective</option>
+    <option value="Breakdown">Breakdown</option>
+    <option value="Project">Project / Improvement</option>
+    <option value="Lain-lain">Lain-lain</option>
+</select>
 
       <label><b>PENERIMA ORDER (PIC):</b></label>
-      <input type="text" id="penerima" placeholder="Nama PIC..."> <textarea id="penerima_history" class="form-control" rows="2" readonly></textarea>
+      <input type="text" id="penerima" placeholder="Nama PIC..."> 
       
       <label>8. Pilih Manpower (Team):</label>
         <div style="position: relative;">
@@ -404,11 +414,7 @@
         </div>
         <div id="mpSelected" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
       <input type="hidden" id="manpower"> <label>
-        <b>MANPOWER (TEAM) HISTORY:</b></label>
-      <textarea id="manpower_history" class="form-control" rows="3" readonly></textarea>
-        <button class="btn-action btn-terima" onclick="terimaOrder()">▶️ TERIMA ORDER</button>
-      <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-
+      
       <label>8. Analisa Kerusakan</label>
       <textarea id="analisa" placeholder="Analisa penyebab..."></textarea>
 
@@ -436,9 +442,7 @@
      </div>
       <label>11. Kesimpulan Akhir (Resume) </label>
       <textarea id="resume" style="height: 80px;" placeholder="Kesimpulan Perbaikan"></textarea>
-      <button class="btn-action btn-terima" onclick="simpanDraft(event)">📝 SIMPAN DRAFT</button>
-      <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-
+      
       <button class="btn-action btn-terima" onclick="simpanFinal(event)">✅ SIMPAN CLOUD (FINAL)</button>
       <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
       <div class="form-group">
@@ -467,7 +471,7 @@
                 <option value="">Semua Area</option>
                 <option>Amonia</option>
                 <option>Urea</option>
-                <option>Utility</option>               
+                <option>Offside</option>               
             </select>
          </div>
          <div>
@@ -876,168 +880,6 @@ async function renderTable() {
     }
 }
 
-async function terimaOrder() {
-    const notif = document.getElementById('nomor_notif').value;
-    const pic = document.getElementById('penerima').value; 
-    const mp = document.getElementById('manpower').value;  
-    const prog = document.getElementById('progRange').value;
-
-    // 1. VALIDASI
-    if (!notif) return alert("Pilih nomor notif terlebih dahulu!");
-    
-    // --- TAMBAHAN PENTING: Ambil data referensi dari memori (cloudData) ---
-    // Kita cari data yang ID-nya paling besar atau statusnya belum Finish
-    const dataAktif = cloudData.find(r => String(r.nomor_notif) === String(notif) && r.status !== "Finish");
-    
-    if (!dataAktif) {
-        return alert("⚠️ Gagal: Tidak ditemukan baris aktif untuk notif ini atau pekerjaan sudah Finish.");
-    }
-
-    if (!pic || pic.trim() === "") {
-        alert("⚠️ Nama Penerima/PIC harus diisi!");
-        document.getElementById('penerima').focus();
-        return;
-    }
-    if (!mp || mp.trim() === "") {
-        alert("⚠️ Manpower harus diisi!");
-        document.getElementById('manpower').focus();
-        return;
-    }
-
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerText = "⏳ Memproses...";
-
-    try {
-        // 2. EKSEKUSI UPDATE (Hanya ke ID spesifik, bukan ke semua Notif)
-        const { error } = await _supabase
-            .from('pekerjaan') 
-            .update({ 
-                penerima: pic,
-                manpower: mp,
-                status: "Inprogres", 
-                progres: parseInt(prog) || 0 
-            })
-            .eq('id', dataAktif.id); // <--- KUNCINYA DI SINI: Pakai ID, bukan nomor_notif
-
-        if (error) throw error;
-
-        alert("✅ Berhasil! Order diterima untuk baris aktif ini.");
-        
-        await fetchDataDariSupabase(); // Refresh data
-        if (typeof renderHist === "function") renderHist(); 
-
-    } catch (err) {
-        console.error("Error detail:", err);
-        alert("Gagal update: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "TERIMA ORDER";
-    }
-}
-
-async function simpanDraft(event) {
-    const elNotif = document.getElementById('nomor_notif');
-    if (!elNotif || !elNotif.value) return alert("Pilih nomor notif dulu!");
-
-    const notif = elNotif.value;
-    const tgl = new Date().toLocaleDateString('id-ID');
-    const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-    // 1. Ambil data asli dari memori (cloudData) untuk digabungkan nanti
-    const dataLama = cloudData.find(r => String(r.nomor_notif) === String(notif));
-    if (!dataLama) return alert("Data tidak ditemukan di memori!");
-
-    const gabungTeks = (idElemen, teksLamaDatabase) => {
-    const inputBaru = document.getElementById(idElemen)?.value.trim() || "";
-    const riwayatLama = (teksLamaDatabase || "").toString().trim();
-
-    // Jika mekanik mengetik sesuatu yang baru (bukan kosong atau cuma "-")
-    if (inputBaru !== "" && inputBaru !== "-") {
-        // Langsung kembalikan apa yang diketik user saja.
-        // Tidak perlu lagi label --- UPDATE ${tgl} ${jam} ---
-        return inputBaru; 
-    }
-    
-    // Jika kotak input kosong, kembalikan data lama agar draft tidak hilang
-    return riwayatLama || "-";
-    };
-
-    // 3. Proses Penggabungan untuk semua kolom laporan
-    const analisaFinal = gabungTeks('analisa', dataLama.analisa);
-    const tindakanFinal = gabungTeks('tindakan_pekerjaan', dataLama.tindakan_pekerjaan);
-    const resumeFinal = gabungTeks('resume', dataLama.resume);
-    const kendalaFinal = gabungTeks('kendala', dataLama.kendala);
-    const prog = document.getElementById('progRange')?.value || 0;
-
-    // 4. LOGIKA STATUS (PENTING: Cek langsung ke elemen input di layar)
-    const inputKendalaSekarang = document.getElementById('kendala')?.value.trim() || "";
-    let statusFinal = "Inprogres"; 
-
-    // Jika di layar kotak kendala ada isinya, status jadi Pending
-    if (inputKendalaSekarang !== "" && inputKendalaSekarang !== "-") {
-        statusFinal = "Pending";
-    } else {
-        // Jika kotak kendala kosong, status balik ke Inprogres
-        statusFinal = "Inprogres";
-    }
-// 5. Eksekusi Update ke Supabase
-    const btn = event.currentTarget;
-    btn.disabled = true;
-    btn.innerText = "⏳ Menyimpan...";
-
-    // Foto hanya untuk baris ini saja (Bukti per langkah)
-    const fotoFinal = tabunganFotoBase64.join(" , "); 
-
-    try {
-        // --- STEP 1: Update Baris Utama (Laporan & Foto Spesifik) ---
-        const { error } = await _supabase
-            .from('pekerjaan')
-            .update({
-                analisa: analisaFinal,
-                tindakan_pekerjaan: tindakanFinal,
-                resume: resumeFinal,
-                kendala: kendalaFinal,
-                progres: parseInt(prog) || 0,
-                status: statusFinal,
-                foto_pekerjaan: tabunganFotoBase64.join(" , ")
-            })
-            .eq('nomor_notif', notif); // Logika ini harus dipastikan hanya kena baris yang diedit (bisa pakai ID kalau mau lebih spesifik)
-
-        if (error) throw error;
-
-        // --- STEP 2: SINKRONISASI MASSAL (HANYA PROGRES & STATUS) ---
-        // Agar semua log alat ini punya status kesehatan yang sama di dashboard
-        const { error: syncError } = await _supabase
-            .from('pekerjaan')
-            .update({ 
-                status: statusFinal, 
-                progres: parseInt(prog) || 0 
-                // foto_pekerjaan TIDAK dimasukkan di sini agar history foto tidak hilang
-            })
-            .eq('nomor_notif', notif);
-        
-        if (syncError) console.warn("Gagal sinkron progres massal.");
-
-        // --- STEP 3: Bersihkan Tabungan & Refresh ---
-        await fetchDataDariSupabase(); // 1. Ambil semua data terbaru dari Supabase
-        renderHist();                  // 2. Update tabel riwayat (biar kelihatan perubahannya)
-        filterOutstanding();           // 3. Update tabel antrean (biar baris yang sudah 'Finish' hilang)
-        tabunganFotoBase64 = []; 
-        if(document.getElementById('fotoPrev')) document.getElementById('fotoPrev').innerHTML = "";
-
-        alert(`✅ BERHASIL!\nLaporan tersimpan. Progres alat disinkronkan.`);
-        pilihNotif(notif); 
-
-    } catch (err) {
-        console.error("Gagal simpan:", err);
-        alert("Gagal simpan: " + err.message);5
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "📝 SIMPAN DRAFT";
-    }
-}
-
 async function simpanFinal(event) {
     const elNotif = document.getElementById('nomor_notif');
     if (!elNotif || !elNotif.value) return alert("Pilih nomor notif dulu!");
@@ -1058,6 +900,7 @@ async function simpanFinal(event) {
     const inputKendala = document.getElementById('kendala')?.value.trim() || "";
     const prog = parseInt(document.getElementById('progRange')?.value) || 0;
     const pic = document.getElementById('penerima')?.value || "";
+    const kategori = document.getElementById('kategori_pekerjaan')?.value || "";
     const tim = document.getElementById('manpower')?.value || "";
 
     btn.disabled = true;
@@ -1075,6 +918,7 @@ async function simpanFinal(event) {
                 kendala: inputKendala,
                 progres: prog,
                 penerima: pic, // Pastikan PIC tersimpan di history
+                kategori_pekerjaan: kategori,
                 manpower: tim, // Pastikan Team tersimpan di history
                 status: prog === 100 ? "Finish" : "Inprogres",
                 foto_pekerjaan: tabunganFotoBase64.join(" , ")
@@ -1082,28 +926,6 @@ async function simpanFinal(event) {
             .eq('id', dataRef.id);
 
         if (errorUpdate) throw errorUpdate;
-
-        // --- STEP B: BUAT BARIS BARU UNTUK DRAFT SELANJUTNYA (Jika < 100%) ---
-        if (prog < 100) {
-            const { error: errorInsert } = await _supabase
-                .from('pekerjaan')
-                .insert([{
-                    nomor_notif: notif,
-                    plant: dataRef.plant,
-                    area: dataRef.area,
-                    nomor_item: dataRef.nomor_item,
-                    deskripsi: dataRef.deskripsi, // Deskripsi tetap dibawa
-                    penerima: pic, // PIC dibawa ke sesi baru
-                    manpower: tim, // Team dibawa ke sesi baru
-                    progres: prog, // Progres mulai dari angka terakhir
-                    status: "Inprogres",
-                    // Analisa & Tindakan dikosongkan agar siap diisi baru
-                    analisa: null, 
-                    tindakan_pekerjaan: null 
-                }]);
-            
-            if (errorInsert) throw errorInsert;
-        }
 
         // --- STEP C: REFRESH DATA ---
         await fetchDataDariSupabase();

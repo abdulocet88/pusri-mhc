@@ -261,7 +261,7 @@
                         <option value="">-- Pilih Area --</option>
                         <option>Amonia</option>
                         <option>Urea</option>
-                        <option>Utility</option>
+                        <option>Offsite</option>
                     </select>
                 </div>
                 <div>
@@ -380,19 +380,46 @@ let daftarItemPabrik = []; // Wadah untuk validasi nanti
 // --- 2. FUNGSI AMBIL DATA (Satu kali panggil saat buka web) ---
 async function fetchItemReferences() {
     try {
-        console.log("Menarik data item dari Supabase...");
+        const p = document.getElementById('fPlant').value;
+        const a = document.getElementById('fArea').value;
+        
+        let targetTable = "";
+        let targetColumn = ""; // Variabel untuk menampung nama kolom yang berbeda
+
+        // 1. Pemetaan Tabel dan Kolom (Sesuaikan dengan nama di Supabase Bapak)
+        if (p === "Pusri 1B") {
+            if (a === "Urea") {
+                targetTable = 'nomor_item_urea_p1b';
+                targetColumn = 'nomor_item_urea_p1b';
+            } else if (a === "Amonia") {
+                targetTable = 'nomor_item_amonia_p1b';
+                targetColumn = 'nomor_item_amonia_p1b'; // Pastikan ini nama kolom di tabel Amonia
+            } else if (a === "Utility") {
+                targetTable = 'nomor_item_offsite_p1b';
+                targetColumn = 'nomor_item_offsite_p1b';
+                }
+        }
+
+        if (!targetTable || !targetColumn) {
+            daftarItemPabrik = [];
+            return;
+        }
+
+        console.log(`Mengambil data dari ${targetTable} kolom ${targetColumn}...`);
+
         const { data, error } = await _supabase
-            .from('nomor_item_urea_p1b')
-            .select('nomor_item_urea_p1b');
+            .from(targetTable)
+            .select(targetColumn);
 
         if (error) throw error;
 
-        const itemsRaw = data.map(row => row.nomor_item_urea_p1b).filter(Boolean);
+        // 2. KUNCI UTAMA: Mengambil data secara dinamis berdasarkan targetColumn
+        const itemsRaw = data.map(row => row[targetColumn]).filter(Boolean);
         const items = [...new Set(itemsRaw)]; 
         
-        // Simpan ke variabel global buat validasi logicStep4
         daftarItemPabrik = items.map(i => i.toString().toUpperCase()); 
         
+        // 3. Update Datalist agar List Muncul di Input
         const datalist = document.getElementById('list_item_pabrik');
         if (datalist) {
             datalist.innerHTML = ""; 
@@ -402,11 +429,13 @@ async function fetchItemReferences() {
                 datalist.appendChild(option);
             });
         }
-        console.log("✅ Daftar 194 Item Berhasil Dimuat dari Supabase");
+        console.log(`✅ List ${a} berhasil dimuat: ${items.length} data.`);
+
     } catch (err) {
-        console.error("❌ Gagal muat item:", err);
+        console.error("❌ Gagal muat list item:", err);
     }
 }
+
 // --- 3. LOGIC STEPS (GABUNGAN) ---
 // --- 3. LOGIC STEPS (GABUNGAN) ---
 
@@ -446,20 +475,21 @@ function logicStep2() {
     const dept = document.getElementById('fdepartemen');
     const itemInput = document.getElementById('fItem');
     
-    // Reset bawahan
     dept.value = ""; 
     itemInput.value = "";
     itemInput.disabled = true;
 
-    // Buka Dept hanya jika Area sudah ada isinya
     if (a !== "") {
         dept.disabled = false;
+        // JALANKAN penarikan data ke Supabase
+        fetchItemReferences(); 
     } else {
         dept.disabled = true;
     }
     
-    // Logika Saklar Datalist Supabase
-    if (p === "Pusri 1B" && a === "Urea") {
+    // Aktifkan fitur list (Datalist) untuk 3 area utama
+    const areaValid = ["Urea", "Amonia", "Offsite"];
+    if (p === "Pusri 1B" && areaValid.includes(a)) {
         itemInput.setAttribute("list", "list_item_pabrik");
     } else {
         itemInput.removeAttribute("list");
@@ -490,35 +520,36 @@ function logicStep4() {
     const hint = document.getElementById('notifHint');
 
     itemInput.style.border = "1px solid #ccc";
-    itemInput.style.backgroundColor = "white"; // Reset warna background
+    itemInput.style.backgroundColor = "white"; 
     hint.innerHTML = "";
+    notifInput.readOnly = false;
+    notifInput.style.background = "white";
 
-    // 1. CEK VALIDASI (Khusus Urea P1B)
+    const areaValid = ["Urea", "Amonia", "Offsite"];
+
+    // 1. Cek apakah item ada di daftar (Daftar sudah terisi sesuai area di Step 2)
     let isError = false;
-    if (p === "Pusri 1B" && a === "Urea" && daftarItemPabrik.length > 0) {
+    if (p === "Pusri 1B" && areaValid.includes(a) && daftarItemPabrik.length > 0) {
         if (itemValue !== "" && !daftarItemPabrik.includes(itemValue)) {
             isError = true;
         }
     }
 
-    // 2. JIKA ERROR (Item Tidak Terdaftar)
+    // 2. Jika Salah
     if (isError) {
-        hint.innerHTML = `<span style="color:red; font-weight:bold;">⚠️ ITEM TIDAK TERDAFTAR!</span>`;
+        hint.innerHTML = `<span style="color:red; font-weight:bold;">⚠️ ITEM ${a.toUpperCase()} TIDAK ADA!</span>`;
         itemInput.style.border = "2px solid red";
-        
-        // MATIKAN KOLOM NOTIF
         notifInput.value = "";
         notifInput.readOnly = true; 
-        notifInput.style.background = "#f8d7da"; // Merah muda tanda error
+        notifInput.style.background = "#f8d7da"; 
         return; 
     }
 
-    // 3. JIKA VALID (Atau bukan Urea P1B)
-    if (itemValue !== "" && p === "Pusri 1B" && a === "Urea") {
-        itemInput.style.backgroundColor = "#d4edda"; // Hijau jika valid
+    // 3. Jika Benar (Warna Hijau)
+    if (itemValue !== "" && p === "Pusri 1B" && areaValid.includes(a)) {
+        itemInput.style.backgroundColor = "#d4edda"; 
     }
 
-    // Panggil penjaga untuk cek apakah ini order baru atau lama
     if (typeof autoChecknotif === "function") {
         autoChecknotif();
     }
@@ -575,7 +606,7 @@ function autoChecknotif() {
     const activeOrder = cloudData.find(row =>
         (row.nomor_item || "").toString().trim().toUpperCase() === item &&
         (row.departemen || "").toString() === dept &&
-        (row.status || "").toString().toLowerCase() !== "closed"
+        !['closed', 'finish'].includes((row.status || "").toString().toLowerCase())
     );
 
     if (activeOrder) {
@@ -614,10 +645,10 @@ function validatenotifUnique() {
     // 2. Jika input dikunci (mode lanjut order), lewati
     if (document.getElementById('fnotif').readOnly) return;
 
-    // 3. Cari di cloudData (pastikan nama kolom menggunakan huruf kecil sesuai Supabase)
+    // 3. Cari di cloudData (Ditambahkan pengecekan 'finish' agar tidak dianggap duplikat dari data lama)
     const duplicate = cloudData.find(row =>
         (row.nomor_notif || "").toString().trim().toUpperCase() === notifVal &&
-        (row.status || "").toString().toLowerCase() !== "closed"
+        !['closed', 'finish'].includes((row.status || "").toString().toLowerCase())
     );
 
     if (duplicate) {
@@ -649,36 +680,6 @@ function validatenotifUnique() {
     }
 }
 
-        function kirimWA() {
-            const wa = document.getElementById('fWA').value;
-            const notif = document.getElementById('fnotif').value;
-            const pemberi = document.getElementById('fPemberi').value; // Ambil dari ID Label 8
-            const penerima = document.getElementById('fPenerima').value; // Ambil dari ID Label 7
-            const plant = document.getElementById('fPlant').value;
-            const area = document.getElementById('fArea').value;
-            const item = document.getElementById('fItem').value;
-            const dept = document.getElementById('fdepartemen').value;
-            const elket = document.getElementById('fKet').value;
-
-            if (!wa || !pemberi || !penerima) {
-                return alert("Lengkapi Nama Pemberi, Penerima, dan No. WA Pelaksana!");
-            }
-
-            const pesan = 
-            `*ORDER PEMELIHARAAN MHC*%0A-------------------------%0A
-            *Kepada Yth:* ${penerima}%0A%0AMohon bantuan tindak lanjut pekerjaan berikut:%0A
-            *Deskripsi:*  ${elket}%0A
-            *Unit:* ${plant}%0A
-            *Area:* ${area}%0A
-            *Item:* ${item}%0A
-            *No. notif:* ${notif}%0A
-            *Dept:* ${dept}%0A-------------------------%0A
-            *Pemberi Order:* ${pemberi}%0A-------------------------%0A_
-            Harap update Progres melalui sistem._`;
-
-            document.getElementById('btnSimpan').disabled = false;
-            window.open(`https://wa.me/${wa}?text=${pesan}`, '_blank');
-        }
 async function pilihKontak() {
     // 1. Cek apakah HP mendukung fitur ini
     const supported = ('contacts' in navigator && 'ContactsManager' in window);
