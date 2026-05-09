@@ -330,11 +330,10 @@
   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
     <select id="monPlant" onchange="toggleArea('monAreaWrapper', this.value); filterOutstanding();">
       <option value="">-- Pilih Plant --</option>
-      <option>Pusri 1B</option>
-      <option>Pusri 2B</option>
-      <option>Pusri 3</option>
+      <option>Pusri 1</option>
+      <option>Pusri 2</option>
+      <option>Pusri 3A</option>
       <option>Pusri 3B</option>
-      <option>Pusri 4</option>
       <option>STG BB</option>
       <option>PPU</option>
       <option>NPK</option>
@@ -461,8 +460,8 @@
             <label>Plant</label>
             <select id="fPlant">
                 <option value="">Semua Plant</option>
-                <option>Pusri 1B</option><option>Pusri 2B</option><option>Pusri 3</option>
-                <option>Pusri 4</option><option>STG BB</option><option>PPU</option><option>NPK</option>
+                <option>Pusri 1</option><option>Pusri 2</option><option>Pusri 3</option>
+                <option>Pusri 3B</option><option>STG BB</option><option>PPU</option><option>NPK</option>
             </select>
          </div>
          <div>
@@ -893,7 +892,7 @@ async function simpanFinal(event) {
     // 1. Ambil data referensi dari baris yang sedang aktif di form
     const dataRef = cloudData.find(r => String(r.nomor_notif) === String(notif));
     
-    // 2. Ambil semua input yang baru saja Bapak ketik
+    // 2. Ambil semua input yang baru saja diketik
     const inputAnalisa = document.getElementById('analisa')?.value.trim() || "";
     const inputTindakan = document.getElementById('tindakan_pekerjaan')?.value.trim() || "";
     const inputResume = document.getElementById('resume')?.value.trim() || "";
@@ -907,25 +906,28 @@ async function simpanFinal(event) {
     btn.innerText = "⏳ Memproses...";
 
     try {
-        // --- STEP A: SIMPAN DATA LENGKAP KE BARIS LAMA (Akan Jadi History) ---
-        // Ini supaya saat klik 'Lihat Log', datanya muncul lengkap
-        const { error: errorUpdate } = await _supabase
+        // --- STEP A: SIMPAN SEBAGAI BARIS BARU (Data lama tetap aman/tidak tertimpa) ---
+        const { error: errorInsert } = await _supabase
             .from('pekerjaan')
-            .update({
+            .insert([{
+                nomor_notif: dataRef.nomor_notif,
+                nomor_item: dataRef.nomor_item,
+                plant: dataRef.plant,
+                area: dataRef.area,
+                deskripsi: dataRef.deskripsi || dataRef.deskripsi_order || "",
                 analisa: inputAnalisa,
                 tindakan_pekerjaan: inputTindakan,
                 resume: inputResume,
                 kendala: inputKendala,
                 progres: prog,
-                penerima: pic, // Pastikan PIC tersimpan di history
+                penerima: pic, // Pastikan PIC tersimpan
                 kategori_pekerjaan: kategori,
-                manpower: tim, // Pastikan Team tersimpan di history
+                manpower: tim, // Pastikan Team tersimpan
                 status: prog === 100 ? "Finish" : "Inprogres",
                 foto_pekerjaan: tabunganFotoBase64.join(" , ")
-            })
-            .eq('id', dataRef.id);
+            }]);
 
-        if (errorUpdate) throw errorUpdate;
+        if (errorInsert) throw errorInsert;
 
         // --- STEP C: REFRESH DATA ---
         await fetchDataDariSupabase();
@@ -1060,20 +1062,27 @@ function renderHist() {
         return matchPlant && matchArea && matchItem;
     });
 
+    // Urutkan agar data terbaru berada di atas
+    filtered.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.timestamp || a.waktu || 0);
+        const dateB = new Date(b.created_at || b.timestamp || b.waktu || 0);
+        return dateB.getTime() - dateA.getTime();
+    });
+
     if (filtered.length === 0) {
         histBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Data tidak ditemukan</td></tr>';
         return;
     }
 
-   let notifTerarsip = []; 
+    let notifTerarsip = []; 
 
-    // 3. Masukkan data ke dalam tabel
+    // Masukkan data ke dalam tabel
     histBody.innerHTML = filtered.map(row => {
         const formatWaktu = (val) => {
             if(!val) return "-";
             const d = new Date(val);
-            return d.toLocaleDateString('id-ID',) + ' ' + 
-                   d.toLocaleTimeString('id-ID',);
+            return d.toLocaleDateString('id-ID') + ' ' + 
+                   d.toLocaleTimeString('id-ID');
         };
         const nNotif = row.nomor_notif || "-";
         
@@ -1085,7 +1094,6 @@ function renderHist() {
         }
 
         // Pengaturan gaya visual (Terbaru vs History)
-        // Terbaru: Putih bersih | History: Abu-abu pudar (soft)
         const rowStyle = isTerbaru 
             ? "background-color: #ffffff; font-weight: 500;" 
             : "background-color: #f8fafc; color: #94a3b8; opacity: 0.8;";
@@ -1099,7 +1107,7 @@ function renderHist() {
                 <td style="font-size: 11px;">
                     ${formatWaktu(row.created_at || row.timestamp || row.waktu)}
                 </td>
-                   <td style="padding: 8px; min-width: 100px; vertical-align: top;">
+                <td style="padding: 8px; min-width: 100px; vertical-align: top;">
                     <div style="display: flex; flex-direction: column; gap: 2px;">
                         ${badgeLabel}
                         <b style="color:${isTerbaru ? '#004a99' : 'inherit'}; font-size: 12px; word-break: break-all; display: block;">
@@ -1132,23 +1140,14 @@ function renderHist() {
                     <span class="mp-chip" style="background:${getStatusColor(row.status)}; color:white; border:none; ${!isTerbaru ? 'opacity:0.6;' : ''}">
                         ${row.status || 'Outstanding'}
                     </span>
-                        
-                 <td class="no-print">
-                ${(row.progres >= 100 || (row.status || "").toLowerCase() === 'finish') 
-                    ? `
+                </td>
+                <td class="no-print">
                     <button class="btn-gray" 
                         style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block; background:#64748b; border-color:#64748b;" 
                         onclick="tampilkanLogReadOnly('${row.id}')">
                         👁️ LIHAT LOG
-                    </button>`
-                    : `
-                    <button class="btn-blue" 
-                        style="padding:5px; font-size:10px; margin-bottom:5px; width:100%; display:block;" 
-                        onclick="pilihNotif('${row.nomor_notif}')">
-                        📝 EDIT / DETAIL
-                    </button>`
-                }
-            </td>
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
@@ -1276,82 +1275,13 @@ function pilihNotif(notif) {
         document.getElementById('plant').value = data.plant || "";
         document.getElementById('area').value = data.area || "";
         document.getElementById('deskOrder').value = data.deskripsi_order || data.deskripsi || "";
+        document.getElementById('kategori_pekerjaan').value = data.kategori_pekerjaan ||"";
 
         
-        // 3. MAPPING HISTORY & PROTEKSI (Hanya yang perlu Riwayat & Kunci)
-        const mappingHistory = [
-            { id: 'analisa', val: data.analisa },
-            { id: 'tindakan_pekerjaan', val: data.tindakan_pekerjaan },
-            { id: 'manpower_history', val: data.manpower },
-            { id: 'penerima_history', val: data.penerima_order },
-            { id: 'kendala', val: data.kendala },
-            { id: 'resume', val: data.resume },
-            { id: 'evidence', val: data.foto_pekerjaan || "" }
-        ];
-        mappingHistory.forEach(item => {
-        const el = document.getElementById(item.id);
-        if (el) {
-        const teksLama = (item.val || "").toString().trim();
-        // --- TAMBAHAN KHUSUS UNTUK FOTO (Agar tidak kosong saat Edit) ---
-        tabunganFotoBase64 = []; // Reset tabungan
-        if (data.foto_pekerjaan) {
-            // Pecah teks foto dari database dan masukkan ke tabungan
-            const listFoto = data.foto_pekerjaan.split(" , ");
-            listFoto.forEach(img => {
-                if (img.trim() !== "") tabunganFotoBase64.push(img.trim());
-            });
-            // Jalankan fungsi render preview Bapak agar fotonya tampil di layar
-            renderPreviewDariTabungan(); 
-        } else {
-            // Jika tidak ada foto, bersihkan kotak preview
-            if(document.getElementById('fotoPrev')) document.getElementById('fotoPrev').innerHTML = "";
-        }
-        // ---------------------------------------------------------------
-    
-
-        // 1. JIKA DATA KOSONG (Baru atau belum ada riwayat)
-        if (teksLama === "" || teksLama === "-" || !teksLama) {
-            el.value = ""; // Biarkan kosong agar bersih
-            el.placeholder = "Belum ada riwayat, silakan tulis di sini...";
-            el.dataset.oldLength = 0;
-        } 
-        // 2. JIKA SUDAH ADA DATA (Tampilkan data lama tanpa paksa tambah label UPDATE)
-        else {
-            // Tampilkan data murni dari database
-            el.value = teksLama; 
-            
-            // Simpan panjang teks lama untuk proteksi
-            el.dataset.oldLength = teksLama.length;
-        }
+        
     }
-});
-
-        // 4. UPDATE PROGRESS & UI (Lanjutan yang hilang)
-        const progVal = parseInt(data.progres) || 0;
-        document.getElementById('progRange').value = progVal;
-        updateProgUI();
-        // 4. UPDATE PENERIMA (INPUT AKTIF)
-        if (document.getElementById('penerima')) {
-            document.getElementById('penerima').value = data.penerima_order || "";
-        }
-
-
-        const banner = document.getElementById('statusBanner');
-        if (banner) {
-            banner.innerText = "STATUS: " + (data.status || "OUTSTANDING").toUpperCase();
-            banner.style.background = getStatusColor(data.status);
-        }
-
-        const boxAnalisa = document.getElementById('analisa');
-        if (boxAnalisa) {
-            boxAnalisa.focus();
-            boxAnalisa.setSelectionRange(boxAnalisa.value.length, boxAnalisa.value.length);
-        }
-    } // Penutup if (data)
-} // Penutup function pilihNotif
-
-        
-       
+}
+         
 
 // Fungsi untuk menggabungkan nama-nama yang dicentang jadi satu teks
 function updateManpowerValue() {

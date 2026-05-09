@@ -245,11 +245,10 @@
                     <label>1. Plant</label>
                     <select id="fPlant" onchange="logicStep1()">
                         <option value="">-- Pilih Plant --</option>
-                        <option>Pusri 1B</option>
-                        <option>Pusri 2B</option>
-                        <option>Pusri 3</option>
+                        <option>Pusri 1</option>
+                        <option>Pusri 2</option>
+                        <option>Pusri 3A</option>
                         <option>Pusri 3B</option>
-                        <option>Pusri 4</option>
                         <option>STG BB</option>
                         <option>PPU</option>
                         <option>NPK</option>
@@ -384,20 +383,19 @@ async function fetchItemReferences() {
         const a = document.getElementById('fArea').value;
         
         let targetTable = "";
-        let targetColumn = ""; // Variabel untuk menampung nama kolom yang berbeda
+        let targetColumn = "";
 
-        // 1. Pemetaan Tabel dan Kolom (Sesuaikan dengan nama di Supabase Bapak)
-        if (p === "Pusri 1B") {
+        if (p === "Pusri 1") {
             if (a === "Urea") {
                 targetTable = 'nomor_item_urea_p1b';
                 targetColumn = 'nomor_item_urea_p1b';
             } else if (a === "Amonia") {
                 targetTable = 'nomor_item_amonia_p1b';
-                targetColumn = 'nomor_item_amonia_p1b'; // Pastikan ini nama kolom di tabel Amonia
+                targetColumn = 'nomor_item_amonia_p1b';
             } else if (a === "Offsite") {
                 targetTable = 'nomor_item_offsite_p1b';
                 targetColumn = 'nomor_item_offsite_p1b';
-                }
+            }
         }
 
         if (!targetTable || !targetColumn) {
@@ -413,13 +411,12 @@ async function fetchItemReferences() {
 
         if (error) throw error;
 
-        // 2. KUNCI UTAMA: Mengambil data secara dinamis berdasarkan targetColumn
         const itemsRaw = data.map(row => row[targetColumn]).filter(Boolean);
         const items = [...new Set(itemsRaw)]; 
         
-        daftarItemPabrik = items.map(i => i.toString().toUpperCase()); 
+        // Membersihkan spasi atau karakter tidak terlihat menggunakan .trim()
+        daftarItemPabrik = items.map(i => i.toString().trim().toUpperCase()); 
         
-        // 3. Update Datalist agar List Muncul di Input
         const datalist = document.getElementById('list_item_pabrik');
         if (datalist) {
             datalist.innerHTML = ""; 
@@ -462,14 +459,14 @@ function logicStep1() {
             dept.disabled = false; // LANGSUNG BUKA DEPT
             console.log("Plant Khusus: Langsung ke Departemen");
         } else {
-            // JALUR UMUM: Pusri 1B, dll
+            // JALUR UMUM: Pusri 1, dll
             areaCont.classList.remove('hidden'); 
             area.disabled = false; // BUKA AREA DULU
             console.log("Plant Umum: Harus pilih Area");
         }
     }
 }
-function logicStep2() {
+async function logicStep2() {
     const p = document.getElementById('fPlant').value;
     const a = document.getElementById('fArea').value;
     const dept = document.getElementById('fdepartemen');
@@ -481,15 +478,15 @@ function logicStep2() {
 
     if (a !== "") {
         dept.disabled = false;
-        // JALANKAN penarikan data ke Supabase
-        fetchItemReferences(); 
+        // JALANKAN penarikan data ke Supabase dan tunggu sampai selesai
+        await fetchItemReferences(); 
     } else {
         dept.disabled = true;
     }
     
     // Aktifkan fitur list (Datalist) untuk 3 area utama
     const areaValid = ["Urea", "Amonia", "Offsite"];
-    if (p === "Pusri 1B" && areaValid.includes(a)) {
+    if (p === "Pusri 1" && areaValid.includes(a)) {
         itemInput.setAttribute("list", "list_item_pabrik");
     } else {
         itemInput.removeAttribute("list");
@@ -529,7 +526,7 @@ function logicStep4() {
 
     // 1. Cek apakah item ada di daftar (Daftar sudah terisi sesuai area di Step 2)
     let isError = false;
-    if (p === "Pusri 1B" && areaValid.includes(a) && daftarItemPabrik.length > 0) {
+    if (p === "Pusri 1" && areaValid.includes(a) && daftarItemPabrik.length > 0) {
         if (itemValue !== "" && !daftarItemPabrik.includes(itemValue)) {
             isError = true;
         }
@@ -546,7 +543,7 @@ function logicStep4() {
     }
 
     // 3. Jika Benar (Warna Hijau)
-    if (itemValue !== "" && p === "Pusri 1B" && areaValid.includes(a)) {
+    if (itemValue !== "" && p === "Pusri 1" && areaValid.includes(a)) {
         itemInput.style.backgroundColor = "#d4edda"; 
     }
 
@@ -679,46 +676,6 @@ function validatenotifUnique() {
         if(btn) btn.disabled = false;
     }
 }
-
-async function pilihKontak() {
-    // 1. Cek apakah HP mendukung fitur ini
-    const supported = ('contacts' in navigator && 'ContactsManager' in window);
-    
-    if (supported) {
-        try {
-            // 2. Tentukan data apa yang mau diambil (Nama dan Nomor HP)
-            const props = ['name', 'tel'];
-            const opts = { multiple: false }; // Kita cuma butuh 1 kontak
-
-            // 3. Buka daftar kontak HP
-            const contacts = await navigator.contacts.select(props, opts);
-
-            if (contacts.length > 0) {
-                const kontak = contacts[0];
-                let nomor = kontak.tel[0];
-
-                // 4. Bersihkan nomor (Hapus spasi, strip, atau tanda +)
-                // Dan pastikan depannya 62 (Format WhatsApp)
-                nomor = nomor.replace(/[^0-9]/g, ''); // Ambil angka saja
-                if (nomor.startsWith('0')) {
-                    nomor = '62' + nomor.slice(1);
-                }
-
-                // 5. Masukkan ke input fWA
-                document.getElementById('fWA').value = nomor;
-                
-                // Opsional: Masukkan nama ke input penerima
-                if (kontak.name) {
-                    document.getElementById('fPenerima').value = kontak.name[0];
-                }
-            }
-        } catch (ex) {
-            console.log("Gagal mengambil kontak: " + ex);
-        }
-    } else {
-        alert("Browser kamu tidak mendukung fitur pilih kontak. Silakan ketik manual.");
-    }
-}
 async function pilihKontak() {
     // alert-nya dihapus/dibuang saja
     
@@ -754,6 +711,26 @@ async function pilihKontak() {
         alert("Browser kamu tidak mendukung fitur pilih kontak. Silakan ketik manual.");
     }
 }
+
+        function kirimWA() {
+            const wa = document.getElementById('fWA').value;
+            const notif = document.getElementById('fnotif').value;
+            const pemberi = document.getElementById('fPemberi').value; // Ambil dari ID Label 8
+            const penerima = document.getElementById('fPenerima').value; // Ambil dari ID Label 7
+            const plant = document.getElementById('fPlant').value;
+            const area = document.getElementById('fArea').value;
+            const item = document.getElementById('fItem').value;
+            const dept = document.getElementById('fdepartemen').value;
+
+            if (!wa || !pemberi || !penerima) {
+                return alert("Lengkapi Nama Pemberi, Penerima, dan No. WA Pelaksana!");
+            }
+
+            const pesan = `*ORDER PEMELIHARAAN MHC*%0A-------------------------%0A*Kepada Yth:* ${penerima}%0A%0AMohon bantuan tindak lanjut pekerjaan berikut:%0A*Unit:* ${plant}%0A*Area:* ${area}%0A*Item:* ${item}%0A*No. notif:* ${notif}%0A*Dept:* ${dept}%0A-------------------------%0A*Pemberi Order:* ${pemberi}%0A-------------------------%0A_Harap update Progres melalui sistem._`;
+
+            document.getElementById('btnSimpan').disabled = false;
+            window.open(`https://wa.me/${wa}?text=${pesan}`, '_blank');
+        }
         // --- 3. FUNGSI SAVE (DENGAN PERMIT) ---
         // --- 3. FUNGSI SAVE (VERSI UPDATE: KIRIM KE GOOGLE SHEETS & KOMPRESI FOTO) ---
        async function saveData() {
@@ -1071,7 +1048,7 @@ async function checkSyncStatus() {
         <div style="display:flex; flex-direction:row; gap:10px; flex-wrap:wrap;">
             <select id="tFilterPlant" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
                 <option value="">Semua Plant</option>
-                <option>Pusri 1B</option><option>Pusri 2B</option><option>Pusri 3</option>
+                <option>Pusri 1</option><option>Pusri 2</option><option>Pusri 3A</option>
                 <option>Pusri 3B</option><option>Pusri 4</option><option>STG BB</option><option>PPU</option><option>NPK</option>
             </select>
             <select id="tFilterArea" onchange="renderTable()" style="padding:6px; border-radius:4px; border:1px solid #ccc; flex:1;">
@@ -1188,7 +1165,7 @@ setInterval(updateFormClock, 1000);
 setInterval(checkSyncStatus, 5000);
 // Buat filter sekali saja
 buatFilter();
-        // Modifikasi fungsi logicStep1 untuk aturan khusus Pusri 1B - Urea
+        // Modifikasi fungsi logicStep1 untuk aturan khusus Pusri 1 - Urea
 function hapusLokal(notif) {
     // Cari tombol yang diklik, lalu cari elemen 'tr' (baris) terdekatnya
     // Kita gunakan event.target untuk tahu tombol mana yang ditekan
