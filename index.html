@@ -8,134 +8,69 @@
         :root { --pusri-blue: #004a99; --pusri-gold: #ffd700; --soft-bg: #f4f7fa; --danger: #c53030; --success: #2f855a; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--soft-bg); color: #333; }
         
-        /* Header & Status Cloud (Bab IX) */
+        /* Header & Status Cloud */
         .header { background: var(--pusri-blue); color: white; padding: 25px; text-align: center; border-bottom: 4px solid var(--pusri-gold); position: relative; }
         .header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
-        .cloud-status { position: absolute; top: 10px; right: 20px; font-size: 20px; }  
-        .online { color: #48bb78; } .offline { color: var(--pusri-gold); }
-        /* Pengaturan Jam Digital */
-/* Pengaturan Kontainer Status di Pojok Kanan */
-/* Kontainer Utama Status */
-.status-wrapper { 
-    position: absolute; 
-    top: 15px;      /* Jarak dari atas */
-    right: 20px;    /* Jarak dari kanan */
-    display: flex;
-    flex-direction: column; /* Menyusun elemen ke bawah */
-    align-items: flex-end;  /* Rata kanan semua isinya */
-    gap: 5px;       /* Jarak otomatis antar baris (Status, Awan, Jam) */
-    z-index: 100;
-}
-/* Overlay Gelap untuk Login */
-#loginOverlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 74, 153, 0.95); /* Biru Pusri */
-    display: flex; justify-content: center; align-items: center; z-index: 1000;
-}
-.login-box {
-    background: white; padding: 30px; border-radius: 15px;
-    width: 85%; max-width: 350px; text-align: center;
-}
-.login-box input {
-    width: 100%; padding: 12px; margin: 10px 0;
-    border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
-}
-.login-box button {
-    width: 100%; padding: 12px; background: var(--pusri-gold);
-    border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-}
-#passIn {
-    padding-right: 40px !important; /* Beri ruang untuk ikon mata di dalam kotak */
-}
-.user-profile {
-    position: absolute;
-    top: 15px;    /* Jarak dari atas (disamakan dengan jam agar sejajar) */
-    left: 20px;   /* INI KUNCINYA: Digeser ke pojok kiri */
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 999;
-    text-align: left;
-}
+        
+        /* Kontainer Utama Status Pojok Kanan */
+        .status-wrapper { 
+            position: absolute; 
+            top: 10px;      
+            right: 20px;    
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end;  
+            gap: 4px;       
+            z-index: 100;
+        }
 
-.user-info {
-    display: flex;
-    flex-direction: column;
-}
+        /* Overlay Gelap untuk Login (Disembunyikan secara bawaan) */
+        #loginOverlay {
+            display: none !important;
+        }
 
-.user-name {
-    font-size: 11px;
-    font-weight: bold;
-    color: white;
-    margin: 0;
-}
+        .user-profile {
+            position: absolute;
+            top: 15px;    
+            left: 20px;   
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 999;
+            text-align: left;
+        }
 
-.user-role {
-    font-size: 9px;
-    color: var(--pusri-gold);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
+        .user-info { display: flex; flex-direction: column; text-align: left; }
+        .user-name { font-size: 11px; font-weight: bold; color: white; margin: 0; display: block; }
+        .user-role { font-size: 9px; color: var(--pusri-gold); text-transform: uppercase; margin-bottom: 4px; display: block; }
 
-.logout-btn {
-    background: #e53e3e;
-    color: white;
-    border: none;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-/* Tulisan CLOUD ONLINE / OFFLINE */
-/* Kontainer Utama - Mengatur posisi di pojok kanan atas */
-.status-wrapper { 
-    position: absolute; 
-    top: 10px; 
-    right: 20px; 
-    display: flex;
-    flex-direction: column; /* Menyusun elemen ke bawah (vertikal) */
-    align-items: flex-end;  /* Rata kanan */
-    gap: 4px;               /* Jarak antar elemen */
-    z-index: 100;
-}
+        /* Status Tulisan CLOUD ONLINE / OFFLINE */
+        #syncStatusText {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
 
-/* Tulisan Status (CLOUD ONLINE) */
-#syncStatusText {
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
+        .cloud-status { 
+            font-size: 24px; 
+            margin: 2px 0;
+            line-height: 1;
+            display: block;
+        }
 
-/* Ikon Awan - Diberi margin agar tidak menempel */
-.cloud-status { 
-    font-size: 24px; 
-    margin: 2px 0;
-    line-height: 1;
-    display: block;
-}
-
-.user-info { text-align: left; }
-.user-name { font-size: 11px; font-weight: bold; color: white; display: block; }
-.user-role { font-size: 9px; color: var(--pusri-gold); display: block; text-transform: uppercase; }
-.logout-btn { 
-    background: #ff4d4d; color: white; border: none; padding: 3px 8px; 
-    border-radius: 5px; font-size: 9px; cursor: pointer; margin-top: 2px;
-}
-
-/* Jam Digital - Paling bawah */
-.digital-clock { 
-    font-size: 14px; 
-    font-family: 'Courier New', monospace; 
-    font-weight: bold; 
-    color: var(--pusri-gold);
-    margin: 0;
-}
+        /* Jam Digital - Paling bawah */
+        .digital-clock { 
+            font-size: 14px; 
+            font-family: 'Courier New', monospace; 
+            font-weight: bold; 
+            color: var(--pusri-gold);
+            margin: 0;
+        }
 
         .notif-container { padding: 20px 20px 0; }
         .notif-bar { 
@@ -158,62 +93,27 @@
         .menu-desc { font-size: 11px; color: #666; margin-top: 5px; line-height: 1.3; }
         
         .monitoring-card { background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%); border: 1px solid #d0e3ff; }
-
     </style>
 </head>
 <body>
-<div id="loginOverlay">
-    <div class="login-box" style="box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ddd;">
-        <div style="margin-bottom: 15px;">
-            <img src="https://www.pusri.co.id/images/logo-pusri.png" 
-                 alt="Logo Pusri" 
-                 style="width: 130px; height: auto; object-fit: contain;">
-        </div>
-
-        <h3 style="margin: 0 0 20px 0; color: #004a99; font-size: 18px; letter-spacing: 1px;">
-            PUSRI MHC SYSTEM
-        </h3>
-
-        <input type="text" id="userIn" placeholder="Username" 
-               style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
-
-        <div style="position: relative; width: 100%; margin-bottom: 20px;">
-            <input type="password" id="passIn" placeholder="Password" 
-                   style="width: 100%; padding: 12px; padding-right: 45px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
-            <span id="togglePassword" onclick="togglePass()" 
-                  style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; filter: grayscale(100%);">
-                👁️
-            </span>
-        </div>
-
-        <button onclick="prosesLogin()" 
-                style="width: 100%; padding: 12px; background: #ffd700; color: #004a99; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s;">
-            MASUK
-        </button>
-
-        <p id="pesanLogin" style="color: #c53030; font-size: 12px; margin-top: 15px; font-weight: bold;"></p>
-    </div>
-</div>
 
     <div class="header">
-    <div class="user-profile" id="profileArea" style="display: none;">
-    <div style="font-size: 24px;">👤</div> 
-    <div class="user-info">
-        <span id="displayUserName" class="user-name">Memuat...</span>
-        <span id="displayUserLevel" class="user-role">Level</span>
-        <button class="logout-btn" onclick="logOut()">LOGOUT</button>
-    </div>
-</div>
+        <div class="user-profile" id="profileArea" style="display: flex;">
+            <div style="font-size: 24px;">👤</div> 
+            <div class="user-info">
+                <span id="displayUserName" class="user-name">Abdul Rosyid</span>
+                <span id="displayUserLevel" class="user-role">admin</span>
+            </div>
+        </div>
 
-    <div class="status-wrapper">
-    <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
-    
-    <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
-    <div id="jamDigital" class="digital-clock" style="font-size: 14px; font-family: 'Courier New', monospace; font-weight: bold; color: #ffd700; margin-top: 15px;">00:00:00</div>
-</div>
-    <h1>ROSYID MHC SYSTEM</h1>
-    <p>Monitoring History Card & Maintenance Integrated System</p>
-</div>
+        <div class="status-wrapper">
+            <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
+            <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
+            <div id="jamDigital" class="digital-clock">00:00:00</div>
+        </div>
+        <h1>ROSYID MHC SYSTEM</h1>
+        <p>Monitoring History Card & Maintenance Integrated System</p>
+    </div>
 
     <div class="notif-container">
         <div id="notifOutstanding" class="notif-bar"></div>
@@ -257,81 +157,21 @@
             <span class="menu-desc">Scaffolding & Crane</span>
         </a>
 
-         <a href="Spare-repair.html" class="menu-card">
-    <span class="menu-icon">🔧</span>
-    <span class="menu-title">Repair</span>
-    <span class="menu-desc">ex-spare</span>
-</a>
+        <a href="Spare-repair.html" class="menu-card">
+            <span class="menu-icon">🔧</span>
+            <span class="menu-title">Repair</span>
+            <span class="menu-desc">ex-spare</span>
+        </a>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
     
-    // Hubungkan ke Supabase
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-async function prosesLogin() {
-    const user = document.getElementById('userIn').value;
-    const pass = document.getElementById('passIn').value;
-    const pesan = document.getElementById('pesanLogin');
 
-    // Cek ke tabel 'users' di Supabase
-    const { data, error } = await supabaseClient
-        .from('users')
-        .select('*')
-        .eq('username', user)
-        .eq('password', pass)
-        .single();
-
-    if (error || !data) {
-        pesan.innerText = "Username atau Password Salah!";
-    } else {
-        // Jika Berhasil, simpan data level di browser
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('userLevel', data.level);
-        sessionStorage.setItem('userName', data.username);
-        
-        // Hilangkan form login
-        document.getElementById('loginOverlay').style.display = 'none';
-        alert('Selamat Datang, ' + data.username + ' (Level: ' + data.level + ')');
-        
-        // Atur menu berdasarkan level
-        aturMenuBerdasarkanLevel(data.level);
-    }
-}
-function togglePass() {
-    const passwordField = document.getElementById('passIn');
-    const toggleIcon = document.getElementById('togglePassword');
-    
-    // Cek tipe input sekarang
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text'; // Tampilkan password
-        toggleIcon.innerText = '🙈';  // Ganti ikon jadi monyet tutup mata/mata coret
-    } else {
-        passwordField.type = 'password'; // Sembunyikan lagi
-        toggleIcon.innerText = '👁️';    // Kembalikan ke ikon mata
-    }
-}
-
-function aturMenuBerdasarkanLevel(level) {
-    if (level === 'viewer') {
-        // Contoh: Jika viewer, sembunyikan menu "Form Order"
-        const formOrderMenu = document.querySelector('a[href="formorder.html"]');
-        if (formOrderMenu) formOrderMenu.style.pointerEvents = 'none';
-        if (formOrderMenu) formOrderMenu.style.opacity = '0.5';
-    }
-}
-
-// Cek status login saat halaman dibuka
-window.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('isLoggedIn') === 'true') {
-        document.getElementById('loginOverlay').style.display = 'none';
-        aturMenuBerdasarkanLevel(sessionStorage.getItem('userLevel'));
-    }
-});
-
-    // Fungsi Jam (Supaya tetap jalan terus)
+    // Fungsi Jam Digital (Berjalan Terus)
     function updateClock() {
         const jamElement = document.getElementById('jamDigital');
         if (jamElement) {
@@ -340,19 +180,16 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    setInterval(updateClock, 1000);
 
-    // Fungsi Ambil Data
+    // Fungsi Sinkronisasi Data Pelaporan tanpa mengganggu Halaman Utama
     async function checkAndRefresh() {
         try {
-            // Panggil data status dari tabel formorder
             const { data, error } = await supabaseClient
                 .from('pekerjaan')
                 .select('status');
 
             if (error) throw error;
 
-            // Jika data berhasil diambil (sekalipun datanya 0)
             if (data) {
                 const outstanding = data.filter(item => item.status === "Outstanding").length;
                 const alertBar = document.getElementById('notifOutstanding');
@@ -365,7 +202,6 @@ window.addEventListener('DOMContentLoaded', () => {
                         alertBar.style.display = 'none';
                     }
                 }
-                // Jika sampai sini, berarti koneksi sukses
                 updateStatusUI("CLOUD ONLINE", "#48bb78");
             }
         } catch (error) {
@@ -382,108 +218,13 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Jalankan otomatis
+    // Eksekusi Otomatis saat Website Dimuat
     window.onload = () => {
         updateClock();
         checkAndRefresh();
+        setInterval(updateClock, 1000);
         setInterval(checkAndRefresh, 30000);
     };
-async function prosesLogin() {
-    const user = document.getElementById('userIn').value;
-    const pass = document.getElementById('passIn').value;
-    const pesan = document.getElementById('pesanLogin');
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('*')
-            .eq('username', user)
-            .eq('password', pass)
-            .single();
-
-        if (error || !data) {
-            pesan.innerText = "Username/Password Salah!";
-        } else {
-            // Simpan identitas user di sesi browser
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userLevel', data.level);
-            localStorage.setItem('userName', data.nama_lengkap);
-            
-            // Hilangkan kotak login & terapkan level
-            document.getElementById('loginOverlay').style.display = 'none';
-            terapkanHakAkses(data.level);
-            
-            alert(`Selamat bekerja, ${data.nama_lengkap}!`);
-        }
-    } catch (err) {
-        pesan.innerText = "Gangguan koneksi ke database.";
-    }
-}
-
-function terapkanHakAkses(level) {
-    // Cari semua menu card
-    const allMenus = document.querySelectorAll('.menu-card');
-
-    if (level === 'mekanik') {
-        // Mekanik hanya bisa akses menu tertentu, sisanya abu-abu
-        allMenus.forEach(menu => {
-            const title = menu.querySelector('.menu-title').innerText;
-            // Contoh: Mekanik dilarang masuk menu 'Inspeksi' (Hanya contoh, silakan Bapak sesuaikan)
-            if (title === 'Inspeksi') {
-                menu.style.opacity = '0.4';
-                menu.style.pointerEvents = 'none';
-                menu.style.filter = 'grayscale(100%)';
-            }
-        });
-    }
-    
-    if (level === 'viewer') {
-        // Viewer hanya boleh lihat (Monitoring), tidak bisa input Form Order
-        const formOrder = document.querySelector('a[href="formorder.html"]');
-        if (formOrder) {
-            formOrder.style.opacity = '0.4';
-            formOrder.style.pointerEvents = 'none';
-        }
-    }
-}
-// Fungsi untuk Cek Sesi saat Halaman Dibuka
-function cekSesiLogin() {
-    const loginStatus = localStorage.getItem('isLoggedIn');
-    const userLevel = localStorage.getItem('userLevel');
-    const userName = localStorage.getItem('userName');
-
-    const overlay = document.getElementById('loginOverlay');
-    const areaProfil = document.getElementById('profileArea');
-
-    if (loginStatus === 'true') {
-        // SEMBUNYIKAN LOGIN, TAMPILKAN PROFIL
-        if(overlay) overlay.style.display = 'none';
-        
-        if(areaProfil) {
-            areaProfil.style.display = 'flex'; // Ini yang memunculkan profil
-            document.getElementById('displayUserName').innerText = userName;
-            document.getElementById('displayUserLevel').innerText = userLevel;
-        }
-        
-        terapkanHakAkses(userLevel);
-    } else {
-        // BELUM LOGIN
-        if(overlay) overlay.style.display = 'flex';
-        if(areaProfil) areaProfil.style.display = 'none';
-    }
-}
-
-function logOut() {
-    if (confirm("Apakah Bapak yakin ingin keluar?")) {
-        localStorage.clear(); // Ganti di sini agar data benar-benar terhapus
-        window.location.reload();
-    }
-}
-window.onload = () => {
-    cekSesiLogin(); // Harus dipanggil pertama kali
-    updateClock();
-    checkAndRefresh();
-    setInterval(updateClock, 1000);
-    setInterval(checkAndRefresh, 30000);
-};
 </script>
+</body>
+</html>
