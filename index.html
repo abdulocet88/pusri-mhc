@@ -284,28 +284,21 @@ async function prosesLogin() {
         .eq('password', pass)
         .single();
 
-    // --- POTONG DARI BARIS 287 DAN GANTI DENGAN INI ---
-const dataDummy = {
-    username: "rosyid",
-    level: "admin"
-};
-
-// Langsung set session sukses login
-sessionStorage.setItem('isLoggedIn', 'true');
-sessionStorage.setItem('userLevel', dataDummy.level);
-sessionStorage.setItem('userName', dataDummy.username);
-
-// Sembunyikan overlay login agar aplikasi terbuka
-const loginOverlay = document.getElementById('loginOverlay');
-if (loginOverlay) {
-    loginOverlay.style.display = 'none';
-} else {
-    // Jika ID-nya bukan loginOverlay, sesuaikan dengan nama ID pembungkus loginmu
-    document.body.classList.add('logged-in'); 
-}
-
-alert('Selamat Datang, ' + dataDummy.username);
-// --------------------------------------------------
+    if (error || !data) {
+        pesan.innerText = "Username atau Password Salah!";
+    } else {
+        // Jika Berhasil, simpan data level di browser
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('userLevel', data.level);
+        sessionStorage.setItem('userName', data.username);
+        
+        // Hilangkan form login
+        document.getElementById('loginOverlay').style.display = 'none';
+        alert('Selamat Datang, ' + data.username + ' (Level: ' + data.level + ')');
+        
+        // Atur menu berdasarkan level
+        aturMenuBerdasarkanLevel(data.level);
+    }
 }
 function togglePass() {
     const passwordField = document.getElementById('passIn');
