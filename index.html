@@ -12,22 +12,22 @@
         .header { background: var(--pusri-blue); color: white; padding: 25px; text-align: center; border-bottom: 4px solid var(--pusri-gold); position: relative; }
         .header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
         
-        /* Kontainer Utama Status Pojok Kanan */
+        /* Kontainer Utama Status */
         .status-wrapper { 
             position: absolute; 
-            top: 10px;      
-            right: 20px;    
+            top: 10px; 
+            right: 20px; 
             display: flex;
             flex-direction: column; 
             align-items: flex-end;  
-            gap: 4px;       
+            gap: 4px;               
             z-index: 100;
         }
 
         /* Overlay Gelap untuk Login */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 74, 153, 0.95);
+            background: rgba(0, 74, 153, 0.95); 
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
@@ -64,10 +64,10 @@
         .user-role { font-size: 9px; color: var(--pusri-gold); text-transform: uppercase; margin-bottom: 4px; display: block; }
         .logout-btn { 
             background: #ff4d4d; color: white; border: none; padding: 3px 8px; 
-            border-radius: 5px; font-size: 9px; cursor: pointer; margin-top: 2px;
+            border-radius: 5px; font-size: 9px; cursor: pointer; margin-top: 2px; font-weight: bold;
         }
 
-        /* Status Tulisan CLOUD ONLINE / OFFLINE */
+        /* Tulisan Status */
         #syncStatusText { font-size: 10px; font-weight: bold; letter-spacing: 0.5px; margin: 0; }
         .cloud-status { font-size: 24px; margin: 2px 0; line-height: 1; display: block; }
         .digital-clock { font-size: 14px; font-family: 'Courier New', monospace; font-weight: bold; color: var(--pusri-gold); margin: 0; }
@@ -128,8 +128,8 @@
     </div>
 
     <div class="status-wrapper">
-        <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #ffd700; margin-bottom: 2px;">SUPABASE MAINTENANCE</div>
-        <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">⚠️</div>
+        <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #ffd700; margin-bottom: 2px;">MENDETEKSI SERVER...</div>
+        <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">⏳</div>
         <div id="jamDigital" class="digital-clock">00:00:00</div>
     </div>
     <h1>ROSYID MHC SYSTEM</h1>
@@ -147,37 +147,31 @@
         <span class="menu-title">Form Order</span>
         <span class="menu-desc">Buat W.O Baru & Notifikasi WA</span>
     </a>
-
     <a href="history_peralatan.html" class="menu-card monitoring-card">
         <span class="menu-icon">📊</span>
         <span class="menu-title">Plant Monitoring</span>
         <span class="menu-desc">History Aset & Analisa MTBF</span>
     </a>
-
     <a href="Departemen-mechanical.html" class="menu-card">
         <span class="menu-icon">⚙️</span>
         <span class="menu-title">Mekanikal</span>
         <span class="menu-desc">History Card & Data Mekanikal</span>
     </a>
-
     <a href="dept-electrical.html" class="menu-card">
         <span class="menu-icon">⚡</span>
         <span class="menu-title">Listrik</span>
         <span class="menu-desc">Maintenance & Distribution</span>
     </a>
-
     <a href="dept-inspection.html" class="menu-card">
         <span class="menu-icon">🔍</span>
         <span class="menu-title">Inspeksi</span>
         <span class="menu-desc">NDT & Reliability</span>
     </a>
-
     <a href="dept-supporting.html" class="menu-card">
         <span class="menu-icon">🏗️</span>
         <span class="menu-title">Supporting</span>
         <span class="menu-desc">Scaffolding & Crane</span>
     </a>
-
     <a href="Spare-repair.html" class="menu-card">
         <span class="menu-icon">🔧</span>
         <span class="menu-title">Repair</span>
@@ -185,21 +179,26 @@
     </a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-    // FUNGSI LOGIN OFFLINE / AMAN DARI MAINTENANCE SERVER
+    const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // LOGIN OFFLINE AMAN (Agar langsung masuk malam ini)
     function prosesLoginOffline() {
         const user = document.getElementById('userIn').value.trim();
         const pass = document.getElementById('passIn').value.trim();
         const pesan = document.getElementById('pesanLogin');
 
-        // Pengecekan dicocokkan langsung di internal kode web tanpa manggil server luar
         if (user === "rosyid" && pass === "mekanik") {
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('userLevel', 'admin');
             localStorage.setItem('userName', 'Abdul Rosyid');
-            
             cekSesiLogin();
-            alert('Selamat datang, Abdul Rosyid (Mode Cadangan)');
+            alert('Selamat datang, Abdul Rosyid!');
         } else {
             pesan.innerText = "Username atau Password Salah!";
         }
@@ -239,7 +238,7 @@
     }
 
     function logOut() {
-        if (confirm("Apakah Anda yakin ingin keluar?")) {
+        if (confirm("Apakah Bapak yakin ingin keluar?")) {
             localStorage.clear();
             window.location.reload();
         }
@@ -254,10 +253,54 @@
         }
     }
 
+    // DETEKSI OTOMATIS STATUS SERVER DI SINI
+    async function checkAndRefresh() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('pekerjaan')
+                .select('status');
+
+            if (error) throw error;
+
+            if (data) {
+                const outstanding = data.filter(item => item.status === "Outstanding").length;
+                const alertBar = document.getElementById('notifOutstanding');
+                
+                if(alertBar) {
+                    if(outstanding > 0) {
+                        alertBar.style.display = 'block';
+                        alertBar.innerText = `⚠️ ${outstanding} KELUHAN PERLU DITINDAK`;
+                    } else {
+                        alertBar.style.display = 'none';
+                    }
+                }
+                // Jika data sukses dibaca, ubah status ke Hijau
+                updateStatusUI("CLOUD ONLINE", "#48bb78", "☁️");
+            }
+        } catch (error) {
+            // Jika gagal (karena server maintenance), ubah status ke Kuning
+            updateStatusUI("SUPABASE MAINTENANCE", "#ffd700", "⚠️");
+        }
+    }
+
+    function updateStatusUI(text, color, icon) {
+        const syncText = document.getElementById('syncStatusText');
+        const iconText = document.getElementById('icon');
+        if(syncText) {
+            syncText.innerText = text;
+            syncText.style.color = color;
+        }
+        if(iconText) {
+            iconText.innerText = icon;
+        }
+    }
+
     window.onload = () => {
         cekSesiLogin();
         updateClock();
+        checkAndRefresh(); // Langsung cek status saat halaman dimuat
         setInterval(updateClock, 1000);
+        setInterval(checkAndRefresh, 30000); // Cek ulang setiap 30 detik
     };
 </script>
 </body>
