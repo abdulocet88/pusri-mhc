@@ -112,7 +112,7 @@
             <span id="togglePassword" onclick="togglePass()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; filter: grayscale(100%);">👁️</span>
         </div>
 
-        <button onclick="prosesLogin()">MASUK</button>
+        <button onclick="prosesLoginOffline()">MASUK</button>
         <p id="pesanLogin" style="color: #c53030; font-size: 12px; margin-top: 15px; font-weight: bold;"></p>
     </div>
 </div>
@@ -128,8 +128,8 @@
     </div>
 
     <div class="status-wrapper">
-        <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
-        <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
+        <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #ffd700; margin-bottom: 2px;">SUPABASE MAINTENANCE</div>
+        <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">⚠️</div>
         <div id="jamDigital" class="digital-clock">00:00:00</div>
     </div>
     <h1>ROSYID MHC SYSTEM</h1>
@@ -185,48 +185,23 @@
     </a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    const SUPABASE_URL = "https://tnckidxqtloybtlksjxs.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuY2tpZHhxdGxveWJ0bGtzanhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NzgwMTEsImV4cCI6MjA4NzM1NDAxMX0.rgutBW-ge6mZWFxz5rWGcSN4Ko7DVrW0OIylF4iiD-I";
-    
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // 1. FUNGSI LOGIN UTAMA (SUDAH DIPERBAIKI)
-    async function prosesLogin() {
+    // FUNGSI LOGIN OFFLINE / AMAN DARI MAINTENANCE SERVER
+    function prosesLoginOffline() {
         const user = document.getElementById('userIn').value.trim();
         const pass = document.getElementById('passIn').value.trim();
         const pesan = document.getElementById('pesanLogin');
 
-        if (!user || !pass) {
-            pesan.innerText = "Isi username dan password!";
-            return;
-        }
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('username', user)
-                .eq('password', pass);
-
-            if (error || !data || data.length === 0) {
-                pesan.innerText = "Username atau Password Salah!";
-            } else {
-                const userData = data[0]; // Ambil baris pertama
-                
-                // Simpan sesi di browser agar tidak bolak-balik login
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userLevel', userData.level || 'viewer');
-                localStorage.setItem('userName', userData.nama_lengkap || userData.username);
-                
-                // Eksekusi tampilan aplikasi terbuka
-                cekSesiLogin();
-                alert('Selamat datang, ' + (userData.nama_lengkap || userData.username));
-            }
-        } catch (err) {
-            pesan.innerText = "Gangguan koneksi ke database.";
-            console.error(err);
+        // Pengecekan dicocokkan langsung di internal kode web tanpa manggil server luar
+        if (user === "rosyid" && pass === "mekanik") {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userLevel', 'admin');
+            localStorage.setItem('userName', 'Abdul Rosyid');
+            
+            cekSesiLogin();
+            alert('Selamat datang, Abdul Rosyid (Mode Cadangan)');
+        } else {
+            pesan.innerText = "Username atau Password Salah!";
         }
     }
 
@@ -242,18 +217,6 @@
         }
     }
 
-    function terapkanHakAkses(level) {
-        const allMenus = document.querySelectorAll('.menu-card');
-        if (level === 'viewer') {
-            const formOrder = document.querySelector('a[href="formorder.html"]');
-            if (formOrder) {
-                formOrder.style.opacity = '0.4';
-                formOrder.style.pointerEvents = 'none';
-            }
-        }
-    }
-
-    // 2. CEK STATUS LOGIN SAAT HALAMAN DIBUKA
     function cekSesiLogin() {
         const loginStatus = localStorage.getItem('isLoggedIn');
         const userLevel = localStorage.getItem('userLevel');
@@ -269,7 +232,6 @@
                 document.getElementById('displayUserName').innerText = userName;
                 document.getElementById('displayUserLevel').innerText = userLevel;
             }
-            terapkanHakAkses(userLevel);
         } else {
             if(overlay) overlay.style.display = 'flex';
             if(areaProfil) areaProfil.style.display = 'none';
@@ -283,7 +245,6 @@
         }
     }
 
-    // Jam Digital
     function updateClock() {
         const jamElement = document.getElementById('jamDigital');
         if (jamElement) {
@@ -293,48 +254,10 @@
         }
     }
 
-    // Sinkronisasi data keluhan di background
-    async function checkAndRefresh() {
-        try {
-            const { data, error } = await supabaseClient
-                .from('pekerjaan')
-                .select('status');
-
-            if (error) throw error;
-
-            if (data) {
-                const outstanding = data.filter(item => item.status === "Outstanding").length;
-                const alertBar = document.getElementById('notifOutstanding');
-                
-                if(alertBar) {
-                    if(outstanding > 0) {
-                        alertBar.style.display = 'block';
-                        alertBar.innerText = `⚠️ ${outstanding} KELUHAN PERLU DITINDAK`;
-                    } else {
-                        alertBar.style.display = 'none';
-                    }
-                }
-                updateStatusUI("CLOUD ONLINE", "#48bb78");
-            }
-        } catch (error) {
-            updateStatusUI("SERVER BUSY", "#ffd700");
-        }
-    }
-
-    function updateStatusUI(text, color) {
-        const syncText = document.getElementById('syncStatusText');
-        if(syncText) {
-            syncText.innerText = text;
-            syncText.style.color = color;
-        }
-    }
-
     window.onload = () => {
         cekSesiLogin();
         updateClock();
-        checkAndRefresh();
         setInterval(updateClock, 1000);
-        setInterval(checkAndRefresh, 30000);
     };
 </script>
 </body>
