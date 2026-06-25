@@ -24,10 +24,25 @@
             z-index: 100;
         }
 
-        /* Overlay Gelap untuk Login (Disembunyikan secara bawaan) */
+        /* Overlay Gelap untuk Login */
         #loginOverlay {
-            display: none !important;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 74, 153, 0.95);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
+        .login-box {
+            background: white; padding: 30px; border-radius: 15px;
+            width: 85%; max-width: 350px; text-align: center;
+        }
+        .login-box input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
+        }
+        .login-box button {
+            width: 100%; padding: 12px; background: var(--pusri-gold);
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        #passIn { padding-right: 40px !important; }
 
         .user-profile {
             position: absolute;
@@ -47,30 +62,15 @@
         .user-info { display: flex; flex-direction: column; text-align: left; }
         .user-name { font-size: 11px; font-weight: bold; color: white; margin: 0; display: block; }
         .user-role { font-size: 9px; color: var(--pusri-gold); text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .logout-btn { 
+            background: #ff4d4d; color: white; border: none; padding: 3px 8px; 
+            border-radius: 5px; font-size: 9px; cursor: pointer; margin-top: 2px;
+        }
 
         /* Status Tulisan CLOUD ONLINE / OFFLINE */
-        #syncStatusText {
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin: 0;
-        }
-
-        .cloud-status { 
-            font-size: 24px; 
-            margin: 2px 0;
-            line-height: 1;
-            display: block;
-        }
-
-        /* Jam Digital - Paling bawah */
-        .digital-clock { 
-            font-size: 14px; 
-            font-family: 'Courier New', monospace; 
-            font-weight: bold; 
-            color: var(--pusri-gold);
-            margin: 0;
-        }
+        #syncStatusText { font-size: 10px; font-weight: bold; letter-spacing: 0.5px; margin: 0; }
+        .cloud-status { font-size: 24px; margin: 2px 0; line-height: 1; display: block; }
+        .digital-clock { font-size: 14px; font-family: 'Courier New', monospace; font-weight: bold; color: var(--pusri-gold); margin: 0; }
 
         .notif-container { padding: 20px 20px 0; }
         .notif-bar { 
@@ -97,72 +97,93 @@
 </head>
 <body>
 
-    <div class="header">
-        <div class="user-profile" id="profileArea" style="display: flex;">
-            <div style="font-size: 24px;">👤</div> 
-            <div class="user-info">
-                <span id="displayUserName" class="user-name">Abdul Rosyid</span>
-                <span id="displayUserLevel" class="user-role">admin</span>
-            </div>
+<div id="loginOverlay">
+    <div class="login-box" style="box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ddd;">
+        <div style="margin-bottom: 15px;">
+            <img src="https://www.pusri.co.id/images/logo-pusri.png" alt="Logo Pusri" style="width: 130px; height: auto; object-fit: contain;">
         </div>
 
-        <div class="status-wrapper">
-            <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
-            <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
-            <div id="jamDigital" class="digital-clock">00:00:00</div>
+        <h3 style="margin: 0 0 20px 0; color: #004a99; font-size: 18px; letter-spacing: 1px;">PUSRI MHC SYSTEM</h3>
+
+        <input type="text" id="userIn" placeholder="Username">
+
+        <div style="position: relative; width: 100%; margin-bottom: 20px;">
+            <input type="password" id="passIn" placeholder="Password">
+            <span id="togglePassword" onclick="togglePass()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; filter: grayscale(100%);">👁️</span>
         </div>
-        <h1>ROSYID MHC SYSTEM</h1>
-        <p>Monitoring History Card & Maintenance Integrated System</p>
+
+        <button onclick="prosesLogin()">MASUK</button>
+        <p id="pesanLogin" style="color: #c53030; font-size: 12px; margin-top: 15px; font-weight: bold;"></p>
+    </div>
+</div>
+
+<div class="header">
+    <div class="user-profile" id="profileArea" style="display: none;">
+        <div style="font-size: 24px;">👤</div> 
+        <div class="user-info">
+            <span id="displayUserName" class="user-name">Memuat...</span>
+            <span id="displayUserLevel" class="user-role">Level</span>
+            <button class="logout-btn" onclick="logOut()">LOGOUT</button>
+        </div>
     </div>
 
-    <div class="notif-container">
-        <div id="notifOutstanding" class="notif-bar"></div>
-        <div id="lastOrderBar" class="notif-bar" style="background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8;"></div>
+    <div class="status-wrapper">
+        <div id="syncStatusText" style="font-size: 10px; font-weight: bold; color: #48bb78; margin-bottom: 2px;">CLOUD ONLINE</div>
+        <div id="icon" class="cloud-status" style="font-size: 24px; margin: 0; line-height: 1;">☁️</div>
+        <div id="jamDigital" class="digital-clock">00:00:00</div>
     </div>
+    <h1>ROSYID MHC SYSTEM</h1>
+    <p>Monitoring History Card & Maintenance Integrated System</p>
+</div>
 
-    <div id="homeSection">
-        <a href="formorder.html" class="menu-card">
-            <span class="menu-icon">📝</span>
-            <span class="menu-title">Form Order</span>
-            <span class="menu-desc">Buat W.O Baru & Notifikasi WA</span>
-        </a>
+<div class="notif-container">
+    <div id="notifOutstanding" class="notif-bar"></div>
+    <div id="lastOrderBar" class="notif-bar" style="background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8;"></div>
+</div>
 
-        <a href="history_peralatan.html" class="menu-card monitoring-card">
-            <span class="menu-icon">📊</span>
-            <span class="menu-title">Plant Monitoring</span>
-            <span class="menu-desc">History Aset & Analisa MTBF</span>
-        </a>
+<div id="homeSection">
+    <a href="formorder.html" class="menu-card">
+        <span class="menu-icon">📝</span>
+        <span class="menu-title">Form Order</span>
+        <span class="menu-desc">Buat W.O Baru & Notifikasi WA</span>
+    </a>
 
-        <a href="Departemen-mechanical.html" class="menu-card">
-            <span class="menu-icon">⚙️</span>
-            <span class="menu-title">Mekanikal</span>
-            <span class="menu-desc">History Card & Data Mekanikal</span>
-        </a>
+    <a href="history_peralatan.html" class="menu-card monitoring-card">
+        <span class="menu-icon">📊</span>
+        <span class="menu-title">Plant Monitoring</span>
+        <span class="menu-desc">History Aset & Analisa MTBF</span>
+    </a>
 
-        <a href="dept-electrical.html" class="menu-card">
-            <span class="menu-icon">⚡</span>
-            <span class="menu-title">Listrik</span>
-            <span class="menu-desc">Maintenance & Distribution</span>
-        </a>
+    <a href="Departemen-mechanical.html" class="menu-card">
+        <span class="menu-icon">⚙️</span>
+        <span class="menu-title">Mekanikal</span>
+        <span class="menu-desc">History Card & Data Mekanikal</span>
+    </a>
 
-        <a href="dept-inspection.html" class="menu-card">
-            <span class="menu-icon">🔍</span>
-            <span class="menu-title">Inspeksi</span>
-            <span class="menu-desc">NDT & Reliability</span>
-        </a>
+    <a href="dept-electrical.html" class="menu-card">
+        <span class="menu-icon">⚡</span>
+        <span class="menu-title">Listrik</span>
+        <span class="menu-desc">Maintenance & Distribution</span>
+    </a>
 
-        <a href="dept-supporting.html" class="menu-card">
-            <span class="menu-icon">🏗️</span>
-            <span class="menu-title">Supporting</span>
-            <span class="menu-desc">Scaffolding & Crane</span>
-        </a>
+    <a href="dept-inspection.html" class="menu-card">
+        <span class="menu-icon">🔍</span>
+        <span class="menu-title">Inspeksi</span>
+        <span class="menu-desc">NDT & Reliability</span>
+    </a>
 
-        <a href="Spare-repair.html" class="menu-card">
-            <span class="menu-icon">🔧</span>
-            <span class="menu-title">Repair</span>
-            <span class="menu-desc">ex-spare</span>
-        </a>
-    </div>
+    <a href="dept-supporting.html" class="menu-card">
+        <span class="menu-icon">🏗️</span>
+        <span class="menu-title">Supporting</span>
+        <span class="menu-desc">Scaffolding & Crane</span>
+    </a>
+
+    <a href="Spare-repair.html" class="menu-card">
+        <span class="menu-icon">🔧</span>
+        <span class="menu-title">Repair</span>
+        <span class="menu-desc">ex-spare</span>
+    </a>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -171,7 +192,98 @@
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Fungsi Jam Digital (Berjalan Terus)
+    // 1. FUNGSI LOGIN UTAMA (SUDAH DIPERBAIKI)
+    async function prosesLogin() {
+        const user = document.getElementById('userIn').value.trim();
+        const pass = document.getElementById('passIn').value.trim();
+        const pesan = document.getElementById('pesanLogin');
+
+        if (!user || !pass) {
+            pesan.innerText = "Isi username dan password!";
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('username', user)
+                .eq('password', pass);
+
+            if (error || !data || data.length === 0) {
+                pesan.innerText = "Username atau Password Salah!";
+            } else {
+                const userData = data[0]; // Ambil baris pertama
+                
+                // Simpan sesi di browser agar tidak bolak-balik login
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userLevel', userData.level || 'viewer');
+                localStorage.setItem('userName', userData.nama_lengkap || userData.username);
+                
+                // Eksekusi tampilan aplikasi terbuka
+                cekSesiLogin();
+                alert('Selamat datang, ' + (userData.nama_lengkap || userData.username));
+            }
+        } catch (err) {
+            pesan.innerText = "Gangguan koneksi ke database.";
+            console.error(err);
+        }
+    }
+
+    function togglePass() {
+        const passwordField = document.getElementById('passIn');
+        const toggleIcon = document.getElementById('togglePassword');
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.innerText = '🙈';
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.innerText = '👁️';
+        }
+    }
+
+    function terapkanHakAkses(level) {
+        const allMenus = document.querySelectorAll('.menu-card');
+        if (level === 'viewer') {
+            const formOrder = document.querySelector('a[href="formorder.html"]');
+            if (formOrder) {
+                formOrder.style.opacity = '0.4';
+                formOrder.style.pointerEvents = 'none';
+            }
+        }
+    }
+
+    // 2. CEK STATUS LOGIN SAAT HALAMAN DIBUKA
+    function cekSesiLogin() {
+        const loginStatus = localStorage.getItem('isLoggedIn');
+        const userLevel = localStorage.getItem('userLevel');
+        const userName = localStorage.getItem('userName');
+
+        const overlay = document.getElementById('loginOverlay');
+        const areaProfil = document.getElementById('profileArea');
+
+        if (loginStatus === 'true') {
+            if(overlay) overlay.style.display = 'none';
+            if(areaProfil) {
+                areaProfil.style.display = 'flex';
+                document.getElementById('displayUserName').innerText = userName;
+                document.getElementById('displayUserLevel').innerText = userLevel;
+            }
+            terapkanHakAkses(userLevel);
+        } else {
+            if(overlay) overlay.style.display = 'flex';
+            if(areaProfil) areaProfil.style.display = 'none';
+        }
+    }
+
+    function logOut() {
+        if (confirm("Apakah Anda yakin ingin keluar?")) {
+            localStorage.clear();
+            window.location.reload();
+        }
+    }
+
+    // Jam Digital
     function updateClock() {
         const jamElement = document.getElementById('jamDigital');
         if (jamElement) {
@@ -181,7 +293,7 @@
         }
     }
 
-    // Fungsi Sinkronisasi Data Pelaporan tanpa mengganggu Halaman Utama
+    // Sinkronisasi data keluhan di background
     async function checkAndRefresh() {
         try {
             const { data, error } = await supabaseClient
@@ -205,7 +317,6 @@
                 updateStatusUI("CLOUD ONLINE", "#48bb78");
             }
         } catch (error) {
-            console.error("Gagal panggil data:", error);
             updateStatusUI("SERVER BUSY", "#ffd700");
         }
     }
@@ -218,8 +329,8 @@
         }
     }
 
-    // Eksekusi Otomatis saat Website Dimuat
     window.onload = () => {
+        cekSesiLogin();
         updateClock();
         checkAndRefresh();
         setInterval(updateClock, 1000);
